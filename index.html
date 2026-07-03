@@ -1,0 +1,2320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lote Premiado — Rifa de Recargas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep: #06060f;
+      --bg-card: #0d0d1f;
+      --bg-card2: #111128;
+      --bg-glass: rgba(18, 18, 48, 0.72);
+      --border: rgba(255, 255, 255, 0.07);
+      --border-bright: rgba(255, 215, 0, 0.3);
+      --gold: #FFD700;
+      --gold-dim: #b8920a;
+      --gold-glow: rgba(255, 215, 0, 0.25);
+      --neon-green: #00ff88;
+      --neon-green-dim: rgba(0, 255, 136, 0.15);
+      --neon-blue: #00bfff;
+      --neon-pink: #ff2d7b;
+      --neon-pink-dim: rgba(255, 45, 123, 0.15);
+      --red: #ff3b3b;
+      --red-dim: rgba(255, 59, 59, 0.15);
+      --text: #f0f0f5;
+      --text-dim: #8888aa;
+      --text-muted: #555577;
+      --purple: #7c3aed;
+      --purple-dim: rgba(124, 58, 237, 0.2);
+      --radius: 14px;
+      --radius-sm: 8px;
+      --radius-lg: 20px;
+      --shadow: 0 8px 32px rgba(0,0,0,0.6);
+      --shadow-gold: 0 0 30px rgba(255,215,0,0.15);
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --nav-h: 64px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-deep);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(124,58,237,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255,215,0,0.06) 0%, transparent 60%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── NAV ─── */
+    .main-nav {
+      position: sticky; top: 0; z-index: 100;
+      height: var(--nav-h);
+      background: rgba(6,6,15,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem;
+    }
+
+    .nav-brand {
+      display: flex; align-items: center; gap: 0.6rem;
+      cursor: pointer; text-decoration: none;
+    }
+
+    .nav-brand-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--gold), #ff8800);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display);
+      font-size: 1.3rem; color: #000;
+      box-shadow: var(--shadow-gold);
+    }
+
+    .nav-brand-text {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      letter-spacing: 0.08em;
+      color: var(--text);
+    }
+
+    .nav-brand-text span { color: var(--gold); }
+
+    .nav-links { display: flex; gap: 0.5rem; align-items: center; }
+
+    .nav-link {
+      font-family: var(--font-body);
+      font-size: 0.85rem; font-weight: 500;
+      color: var(--text-dim);
+      background: none; border: none; cursor: pointer;
+      padding: 0.45rem 1rem; border-radius: var(--radius-sm);
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .nav-link:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+    .nav-link.active { color: var(--gold); background: var(--gold-glow); }
+
+    .nav-link-cta {
+      background: linear-gradient(135deg, var(--gold), #ff8800);
+      color: #000 !important; font-weight: 700;
+      border-radius: var(--radius-sm);
+    }
+    .nav-link-cta:hover { opacity: 0.85; background: linear-gradient(135deg, var(--gold), #ff8800); }
+
+    .nav-user-badge {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.35rem 0.8rem;
+      font-size: 0.82rem; font-weight: 600;
+    }
+    .nav-user-badge .avatar {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--purple), var(--neon-blue));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 700; color: #fff;
+    }
+
+    /* ─── LAYOUT ─── */
+    .app-main {
+      position: relative; z-index: 1;
+      max-width: 1280px; margin: 0 auto;
+      padding: 2rem 1.5rem;
+      min-height: calc(100vh - var(--nav-h) - 60px);
+    }
+
+    .view { animation: fadeUp 0.35s ease; }
+    .hidden { display: none !important; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── TYPOGRAPHY ─── */
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      letter-spacing: 0.04em;
+      line-height: 1.1;
+      margin-bottom: 0.4rem;
+    }
+
+    .section-subtitle {
+      color: var(--text-dim);
+      font-size: 0.95rem; font-weight: 400;
+      margin-bottom: 2rem;
+    }
+
+    .gold-text { color: var(--gold); }
+    .green-text { color: var(--neon-green); }
+    .pink-text { color: var(--neon-pink); }
+
+    /* ─── CARDS ─── */
+    .card {
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .card:hover { border-color: var(--border-bright); box-shadow: var(--shadow-gold); }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.2rem;
+    }
+
+    /* ─── LOT CARD ─── */
+    .lot-card { cursor: pointer; position: relative; overflow: hidden; }
+
+    .lot-card-badge {
+      position: absolute; top: 1rem; right: 1rem;
+      font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+      padding: 0.25rem 0.6rem; border-radius: 6px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .badge-active { background: var(--neon-green-dim); color: var(--neon-green); border: 1px solid rgba(0,255,136,0.3); }
+    .badge-finished { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(124,58,237,0.4); }
+    .badge-cancelled { background: var(--red-dim); color: var(--red); border: 1px solid rgba(255,59,59,0.3); }
+
+    .lot-card-prize {
+      font-family: var(--font-display);
+      font-size: 2rem; letter-spacing: 0.04em;
+      color: var(--gold);
+      margin-bottom: 0.2rem;
+      text-shadow: 0 0 20px rgba(255,215,0,0.3);
+    }
+
+    .lot-card-name {
+      font-size: 0.85rem; color: var(--text-dim);
+      margin-bottom: 1.2rem;
+    }
+
+    .lot-stats {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;
+    }
+
+    .lot-stat-label {
+      font-size: 0.7rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      margin-bottom: 0.15rem;
+    }
+
+    .lot-stat-value {
+      font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700;
+    }
+
+    .progress-bar-wrap {
+      grid-column: 1 / -1;
+      margin-top: 0.6rem;
+    }
+
+    .progress-bar-bg {
+      height: 6px; background: rgba(255,255,255,0.07);
+      border-radius: 3px; overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%; border-radius: 3px;
+      background: linear-gradient(90deg, var(--neon-green), var(--gold));
+      transition: width 0.6s ease;
+    }
+
+    .progress-label {
+      display: flex; justify-content: space-between;
+      font-size: 0.7rem; color: var(--text-dim);
+      margin-top: 0.3rem;
+    }
+
+    /* ─── LOT DETAIL ─── */
+    .lot-detail-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 1.5rem; margin-bottom: 2rem; flex-wrap: wrap;
+    }
+
+    .lot-detail-prize {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      letter-spacing: 0.04em;
+      color: var(--gold);
+      text-shadow: 0 0 40px rgba(255,215,0,0.3);
+    }
+
+    .lot-detail-meta {
+      display: flex; flex-direction: column; gap: 0.3rem;
+      font-size: 0.85rem; color: var(--text-dim);
+    }
+
+    .lot-info-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem; margin-bottom: 2rem;
+    }
+
+    .info-card {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+    }
+
+    .info-card-label {
+      font-size: 0.7rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      margin-bottom: 0.3rem;
+    }
+
+    .info-card-value {
+      font-family: var(--font-mono); font-size: 1.2rem; font-weight: 700;
+    }
+
+    /* ─── TICKET GRID ─── */
+    .ticket-section { margin-top: 2rem; }
+    .ticket-section-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem; letter-spacing: 0.04em;
+      margin-bottom: 0.3rem;
+    }
+    .ticket-section-sub {
+      font-size: 0.82rem; color: var(--text-dim); margin-bottom: 1rem;
+    }
+
+    .ticket-filters {
+      display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;
+    }
+
+    .ticket-filter-btn {
+      font-family: var(--font-body);
+      font-size: 0.78rem; font-weight: 500;
+      padding: 0.35rem 0.9rem; border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent; color: var(--text-dim);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .ticket-filter-btn:hover { border-color: var(--text-dim); color: var(--text); }
+    .ticket-filter-btn.active {
+      background: var(--gold-glow); border-color: var(--gold); color: var(--gold);
+    }
+
+    .ticket-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+      gap: 0.4rem;
+      max-height: 400px; overflow-y: auto;
+      padding: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .ticket-cell {
+      aspect-ratio: 1;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700;
+      border-radius: 8px; cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: var(--bg-card2);
+      color: var(--text-dim);
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .ticket-cell.available:hover {
+      border-color: var(--gold); color: var(--gold);
+      background: var(--gold-glow);
+      transform: scale(1.05);
+    }
+
+    .ticket-cell.selected {
+      background: linear-gradient(135deg, var(--gold), #ff8800);
+      border-color: var(--gold); color: #000;
+      transform: scale(1.05);
+      box-shadow: 0 0 12px rgba(255,215,0,0.4);
+    }
+
+    .ticket-cell.sold {
+      background: var(--purple-dim); border-color: rgba(124,58,237,0.4);
+      color: var(--purple); cursor: not-allowed;
+    }
+
+    .ticket-cell.reserved {
+      background: var(--neon-pink-dim); border-color: rgba(255,45,123,0.4);
+      color: var(--neon-pink); cursor: not-allowed;
+    }
+
+    .ticket-cell.mine {
+      background: var(--neon-green-dim); border-color: rgba(0,255,136,0.4);
+      color: var(--neon-green); cursor: default;
+    }
+
+    .ticket-legend {
+      display: flex; gap: 1.2rem; margin-top: 0.8rem; flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex; align-items: center; gap: 0.4rem;
+      font-size: 0.75rem; color: var(--text-dim);
+    }
+    .legend-dot {
+      width: 10px; height: 10px; border-radius: 3px;
+    }
+
+    /* ─── PURCHASE SUMMARY ─── */
+    .purchase-summary {
+      position: sticky; bottom: 0;
+      background: rgba(6,6,15,0.92);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 1.2rem 1.5rem;
+      margin: 1.5rem -1.5rem -2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap;
+    }
+
+    .purchase-summary-info {
+      display: flex; flex-direction: column; gap: 0.1rem;
+    }
+
+    .purchase-summary-count {
+      font-size: 0.82rem; color: var(--text-dim);
+    }
+
+    .purchase-summary-total {
+      font-family: var(--font-mono); font-size: 1.5rem; font-weight: 700;
+      color: var(--neon-green);
+    }
+
+    .purchase-summary-actions { display: flex; gap: 0.6rem; }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      font-family: var(--font-body);
+      font-size: 0.85rem; font-weight: 600;
+      padding: 0.6rem 1.4rem; border-radius: var(--radius-sm);
+      border: none; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold), #ff8800);
+      color: #000; font-weight: 700;
+      box-shadow: 0 4px 16px rgba(255,215,0,0.25);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(255,215,0,0.35); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.07);
+      color: var(--text); border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.12); }
+
+    .btn-danger {
+      background: var(--red-dim); color: var(--red);
+      border: 1px solid rgba(255,59,59,0.3);
+    }
+    .btn-danger:hover { background: rgba(255,59,59,0.25); }
+
+    .btn-success {
+      background: var(--neon-green-dim); color: var(--neon-green);
+      border: 1px solid rgba(0,255,136,0.3);
+    }
+    .btn-success:hover { background: rgba(0,255,136,0.25); }
+
+    .btn-sm { font-size: 0.78rem; padding: 0.4rem 0.9rem; }
+    .btn-lg { font-size: 1rem; padding: 0.8rem 2rem; }
+
+    /* ─── FORMS ─── */
+    .form-group { margin-bottom: 1.2rem; }
+    .form-label {
+      display: block; font-size: 0.78rem; font-weight: 500;
+      color: var(--text-dim); margin-bottom: 0.4rem;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .form-input, .form-select {
+      width: 100%; padding: 0.65rem 0.9rem;
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text); font-family: var(--font-body);
+      font-size: 0.9rem; transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus {
+      outline: none; border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-glow);
+    }
+    .form-input::placeholder { color: var(--text-muted); }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .form-hint {
+      font-size: 0.72rem; color: var(--text-muted); margin-top: 0.3rem;
+    }
+
+    .form-calculated {
+      font-family: var(--font-mono); font-size: 1rem; font-weight: 700;
+      color: var(--gold); padding: 0.65rem 0.9rem;
+      background: var(--gold-glow);
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius-sm);
+    }
+
+    /* ─── AUTH ─── */
+    .auth-wrap {
+      max-width: 420px; margin: 3rem auto;
+    }
+
+    .auth-card {
+      background: var(--bg-glass); backdrop-filter: blur(20px);
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 2.5rem 2rem;
+    }
+
+    .auth-title {
+      font-family: var(--font-display);
+      font-size: 2rem; letter-spacing: 0.04em;
+      text-align: center; margin-bottom: 0.3rem;
+    }
+
+    .auth-sub {
+      text-align: center; font-size: 0.85rem;
+      color: var(--text-dim); margin-bottom: 2rem;
+    }
+
+    .auth-tabs {
+      display: flex; margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .auth-tab {
+      flex: 1; padding: 0.7rem;
+      background: none; border: none; cursor: pointer;
+      font-family: var(--font-body); font-size: 0.85rem; font-weight: 600;
+      color: var(--text-dim); transition: color 0.2s;
+      border-bottom: 2px solid transparent;
+    }
+    .auth-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+    /* ─── DASHBOARD ─── */
+    .dash-stats {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem; margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.2rem;
+      position: relative; overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .stat-card.gold::before { background: linear-gradient(90deg, var(--gold), #ff8800); }
+    .stat-card.green::before { background: linear-gradient(90deg, var(--neon-green), #00cc66); }
+    .stat-card.blue::before { background: linear-gradient(90deg, var(--neon-blue), #0088cc); }
+    .stat-card.pink::before { background: linear-gradient(90deg, var(--neon-pink), #cc0055); }
+    .stat-card.purple::before { background: linear-gradient(90deg, var(--purple), #5522cc); }
+
+    .stat-label {
+      font-size: 0.72rem; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 0.06em;
+      margin-bottom: 0.4rem;
+    }
+
+    .stat-value {
+      font-family: var(--font-mono); font-size: 1.6rem; font-weight: 700;
+    }
+
+    /* ─── TABLE ─── */
+    .table-wrap {
+      overflow-x: auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    table {
+      width: 100%; border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    thead th {
+      text-align: left; padding: 0.8rem 1rem;
+      font-size: 0.7rem; font-weight: 600;
+      color: var(--text-muted); text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-card2);
+    }
+
+    tbody td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .mono { font-family: var(--font-mono); font-weight: 600; }
+
+    .status-pill {
+      display: inline-block; padding: 0.2rem 0.6rem;
+      border-radius: 20px; font-size: 0.7rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .pill-active { background: var(--neon-green-dim); color: var(--neon-green); }
+    .pill-finished { background: var(--purple-dim); color: #a78bfa; }
+    .pill-cancelled { background: var(--red-dim); color: var(--red); }
+    .pill-paid { background: var(--neon-green-dim); color: var(--neon-green); }
+    .pill-pending { background: var(--gold-glow); color: var(--gold); }
+    .pill-reserved { background: var(--neon-pink-dim); color: var(--neon-pink); }
+
+    /* ─── MODAL ─── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+      animation: fadeIn 0.2s ease;
+    }
+    .modal-overlay.hidden { display: none !important; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 100%; max-width: 560px;
+      max-height: 90vh; overflow-y: auto;
+      padding: 2rem;
+      animation: scaleIn 0.25s ease;
+    }
+
+    @keyframes scaleIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 1.6rem; letter-spacing: 0.04em;
+      margin-bottom: 0.3rem;
+    }
+
+    .modal-sub {
+      font-size: 0.82rem; color: var(--text-dim); margin-bottom: 1.5rem;
+    }
+
+    .modal-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: none; border: none; color: var(--text-dim);
+      font-size: 1.4rem; cursor: pointer; line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+
+    /* ─── RECEIPT ─── */
+    .receipt {
+      background: #fff; color: #000;
+      border-radius: var(--radius);
+      padding: 2rem; margin: 1rem 0;
+      font-family: var(--font-body);
+    }
+    .receipt-header {
+      text-align: center; border-bottom: 2px dashed #ccc;
+      padding-bottom: 1rem; margin-bottom: 1rem;
+    }
+    .receipt-header h2 { font-family: var(--font-display); font-size: 1.8rem; letter-spacing: 0.04em; }
+    .receipt-header p { font-size: 0.8rem; color: #666; }
+    .receipt-row {
+      display: flex; justify-content: space-between;
+      padding: 0.4rem 0; font-size: 0.85rem;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .receipt-row:last-child { border-bottom: none; }
+    .receipt-row .label { color: #666; }
+    .receipt-row .value { font-weight: 700; font-family: var(--font-mono); }
+    .receipt-total {
+      display: flex; justify-content: space-between;
+      padding: 0.8rem 0; margin-top: 0.5rem;
+      border-top: 2px solid #000;
+      font-size: 1.1rem; font-weight: 800;
+    }
+    .receipt-footer {
+      text-align: center; margin-top: 1rem;
+      padding-top: 1rem; border-top: 2px dashed #ccc;
+      font-size: 0.75rem; color: #888;
+    }
+
+    /* ─── DRAW ANIMATION ─── */
+    .draw-display {
+      text-align: center; padding: 3rem 1rem;
+    }
+    .draw-number {
+      font-family: var(--font-display);
+      font-size: 6rem; line-height: 1;
+      color: var(--gold);
+      text-shadow: 0 0 60px rgba(255,215,0,0.5);
+      animation: drawPulse 1s ease infinite alternate;
+    }
+    @keyframes drawPulse {
+      from { transform: scale(1); text-shadow: 0 0 30px rgba(255,215,0,0.3); }
+      to { transform: scale(1.05); text-shadow: 0 0 60px rgba(255,215,0,0.6); }
+    }
+    .draw-winner {
+      font-size: 1.2rem; color: var(--text-dim); margin-top: 1rem;
+    }
+    .draw-winner strong { color: var(--neon-green); }
+
+    /* ─── ADMIN SIDEBAR ─── */
+    .admin-layout { display: flex; gap: 1.5rem; }
+
+    .admin-sidebar {
+      width: 200px; flex-shrink: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 0;
+      align-self: flex-start;
+      position: sticky; top: calc(var(--nav-h) + 2rem);
+    }
+
+    .admin-sidebar-link {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.6rem 1.2rem;
+      font-size: 0.82rem; font-weight: 500;
+      color: var(--text-dim); cursor: pointer;
+      border: none; background: none; width: 100%;
+      text-align: left; transition: all 0.15s;
+      font-family: var(--font-body);
+    }
+    .admin-sidebar-link:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .admin-sidebar-link.active { color: var(--gold); background: var(--gold-glow); border-right: 2px solid var(--gold); }
+
+    .admin-content { flex: 1; min-width: 0; }
+
+    /* ─── ALERTS ─── */
+    .alert {
+      padding: 0.8rem 1rem; border-radius: var(--radius-sm);
+      font-size: 0.82rem; margin-bottom: 1rem;
+      border: 1px solid;
+    }
+    .alert-info { background: rgba(0,191,255,0.1); border-color: rgba(0,191,255,0.3); color: var(--neon-blue); }
+    .alert-success { background: var(--neon-green-dim); border-color: rgba(0,255,136,0.3); color: var(--neon-green); }
+    .alert-warning { background: var(--gold-glow); border-color: var(--border-bright); color: var(--gold); }
+    .alert-error { background: var(--red-dim); border-color: rgba(255,59,59,0.3); color: var(--red); }
+
+    /* ─── FOOTER ─── */
+    .app-footer {
+      position: relative; z-index: 1;
+      text-align: center; padding: 1.5rem;
+      font-size: 0.75rem; color: var(--text-muted);
+      border-top: 1px solid var(--border);
+    }
+
+    /* ─── EMPTY STATE ─── */
+    .empty-state {
+      text-align: center; padding: 4rem 2rem;
+      color: var(--text-dim);
+    }
+    .empty-state-icon {
+      font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;
+    }
+    .empty-state-text { font-size: 0.9rem; }
+
+    /* ─── MISC ─── */
+    .flex-between { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .mb-1 { margin-bottom: 1rem; }
+    .mb-2 { margin-bottom: 2rem; }
+    .mt-1 { margin-top: 1rem; }
+    .mt-2 { margin-top: 2rem; }
+    .gap-1 { gap: 1rem; }
+    .text-center { text-align: center; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      .main-nav { padding: 0 1rem; }
+      .app-main { padding: 1.2rem 1rem; }
+      .admin-layout { flex-direction: column; }
+      .admin-sidebar { width: 100%; position: static; }
+      .form-row { grid-template-columns: 1fr; }
+      .lot-detail-header { flex-direction: column; }
+      .purchase-summary { margin: 1rem -1rem -1.2rem; padding: 1rem; }
+      .ticket-grid { grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); }
+    }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+    /* ─── SEARCH ─── */
+    .search-bar {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 0.9rem;
+      margin-bottom: 1rem;
+    }
+    .search-bar input {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--text); font-family: var(--font-body); font-size: 0.85rem;
+    }
+    .search-bar input::placeholder { color: var(--text-muted); }
+    .search-icon { color: var(--text-muted); font-size: 0.85rem; }
+
+    /* ─── PIX ─── */
+    .pix-info {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem; text-align: center;
+    }
+    .pix-qr-placeholder {
+      width: 180px; height: 180px; margin: 1rem auto;
+      background: #fff; border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; color: #666;
+    }
+    .pix-timer {
+      font-family: var(--font-mono); font-size: 1.2rem; font-weight: 700;
+      color: var(--neon-pink); margin-top: 0.8rem;
+    }
+    .pix-timer-label { font-size: 0.75rem; color: var(--text-dim); }
+
+    /* winner highlight */
+    .winner-banner {
+      background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,136,0,0.08));
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .winner-banner-number {
+      font-family: var(--font-display);
+      font-size: 3rem; color: var(--gold);
+      text-shadow: 0 0 30px rgba(255,215,0,0.4);
+    }
+    .winner-banner-name {
+      font-size: 1rem; color: var(--neon-green); font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <!-- === TOP NAV === -->
+  <nav class="main-nav" id="mainNav">
+    <div class="nav-brand" onclick="navigate('home')">
+      <div class="nav-brand-icon">LP</div>
+      <div class="nav-brand-text">LOTE <span>PREMIADO</span></div>
+    </div>
+    <div class="nav-links" id="navLinks">
+      <button class="nav-link active" onclick="navigate('home')" data-nav="home">Lotes</button>
+      <button class="nav-link hidden" id="navDashboard" onclick="navigate('dashboard')" data-nav="dashboard">Meu Painel</button>
+      <button class="nav-link hidden" id="navAdmin" onclick="navigate('admin')" data-nav="admin">Admin</button>
+      <button class="nav-link" onclick="navigate('admin-login')" data-nav="admin-login">Área Admin</button>
+      <div id="navAuthArea"></div>
+    </div>
+  </nav>
+
+  <!-- === MAIN CONTENT === -->
+  <main class="app-main" id="appMain">
+
+    <!-- VIEW: HOME (lot listing) -->
+    <section class="view" id="view-home">
+      <div class="flex-between mb-2">
+        <div>
+          <h1 class="section-title">LOTES <span class="gold-text">DISPONÍVEIS</span></h1>
+          <p class="section-subtitle">Escolha seu número da sorte e concorra a prêmios incríveis</p>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="navigate('home')">Atualizar</button>
+      </div>
+      <div id="lotList" class="card-grid"></div>
+      <div id="lotListEmpty" class="empty-state hidden">
+        <div class="empty-state-icon">🎰</div>
+        <p class="empty-state-text">Nenhum lote disponível no momento. Volte em breve!</p>
+      </div>
+    </section>
+
+    <!-- VIEW: LOT DETAIL -->
+    <section class="view hidden" id="view-lot">
+      <div id="lotDetailContent"></div>
+      <div class="purchase-summary hidden" id="purchaseSummary">
+        <div class="purchase-summary-info">
+          <div class="purchase-summary-count" id="purchaseSummaryCount">0 cotas selecionadas</div>
+          <div class="purchase-summary-total" id="purchaseSummaryTotal">R$ 0,00</div>
+        </div>
+        <div class="purchase-summary-actions">
+          <button class="btn btn-secondary btn-sm" onclick="clearSelection()">Limpar</button>
+          <button class="btn btn-secondary btn-sm" onclick="randomSelect()">Escolha Aleatória</button>
+          <button class="btn btn-primary" id="btnBuy" onclick="openPurchaseModal()" disabled>Comprar Cotas</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: USER AUTH -->
+    <section class="view hidden" id="view-auth">
+      <div class="auth-wrap">
+        <div class="auth-card">
+          <h2 class="auth-title">BEM-VINDO</h2>
+          <p class="auth-sub">Entre ou crie sua conta para comprar cotas</p>
+          <div class="auth-tabs">
+            <button class="auth-tab active" onclick="switchAuthTab('login')" id="tabLogin">Entrar</button>
+            <button class="auth-tab" onclick="switchAuthTab('register')" id="tabRegister">Cadastrar</button>
+          </div>
+          <form id="authForm" onsubmit="handleAuth(event)">
+            <div class="form-group hidden" id="authNameGroup">
+              <label class="form-label">Nome / Apelido</label>
+              <input class="form-input" type="text" id="authName" placeholder="Seu nome ou apelido" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">E-mail</label>
+              <input class="form-input" type="email" id="authEmail" placeholder="seu@email.com" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Senha</label>
+              <input class="form-input" type="password" id="authPass" placeholder="Sua senha" required />
+            </div>
+            <div id="authError" class="alert alert-error hidden"></div>
+            <button type="submit" class="btn btn-primary btn-lg" style="width:100%" id="authSubmitBtn">Entrar</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: USER DASHBOARD -->
+    <section class="view hidden" id="view-dashboard">
+      <h1 class="section-title">MEU <span class="gold-text">PAINEL</span></h1>
+      <p class="section-subtitle" id="dashWelcome">Bem-vindo</p>
+      <div class="dash-stats" id="dashStats"></div>
+      <div class="mb-2">
+        <h2 style="font-family:var(--font-display);font-size:1.5rem;letter-spacing:0.04em;margin-bottom:1rem">MINHAS COTAS</h2>
+        <div id="dashTickets"></div>
+      </div>
+      <div>
+        <h2 style="font-family:var(--font-display);font-size:1.5rem;letter-spacing:0.04em;margin-bottom:1rem">HISTÓRICO DE COMPRAS</h2>
+        <div id="dashHistory"></div>
+      </div>
+    </section>
+
+    <!-- VIEW: ADMIN LOGIN -->
+    <section class="view hidden" id="view-admin-login">
+      <div class="auth-wrap">
+        <div class="auth-card">
+          <h2 class="auth-title">ÁREA <span class="gold-text">ADMIN</span></h2>
+          <p class="auth-sub">Acesso restrito ao administrador</p>
+          <form onsubmit="handleAdminLogin(event)">
+            <div class="form-group">
+              <label class="form-label">Senha de Administrador</label>
+              <input class="form-input" type="password" id="adminPass" placeholder="Senha do administrador" required />
+              <p class="form-hint">Senha padrão: admin123</p>
+            </div>
+            <div id="adminLoginError" class="alert alert-error hidden"></div>
+            <button type="submit" class="btn btn-primary btn-lg" style="width:100%">Acessar Painel</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: ADMIN DASHBOARD -->
+    <section class="view hidden" id="view-admin">
+      <div class="flex-between mb-2">
+        <h1 class="section-title">PAINEL <span class="gold-text">ADMINISTRATIVO</span></h1>
+        <button class="btn btn-danger btn-sm" onclick="adminLogout()">Sair</button>
+      </div>
+      <div class="admin-layout">
+        <div class="admin-sidebar">
+          <button class="admin-sidebar-link active" onclick="switchAdminTab('overview')" data-admintab="overview">📊 Visão Geral</button>
+          <button class="admin-sidebar-link" onclick="switchAdminTab('lots')" data-admintab="lots">🎰 Lotes</button>
+          <button class="admin-sidebar-link" onclick="switchAdminTab('purchases')" data-admintab="purchases">🛒 Compras</button>
+          <button class="admin-sidebar-link" onclick="switchAdminTab('users')" data-admintab="users">👥 Usuários</button>
+          <button class="admin-sidebar-link" onclick="switchAdminTab('draws')" data-admintab="draws">🏆 Sorteios</button>
+        </div>
+        <div class="admin-content" id="adminContent"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- === MODALS === -->
+  <!-- PURCHASE MODAL -->
+  <div class="modal-overlay hidden" id="modalPurchase">
+    <div class="modal-box" style="position:relative">
+      <button class="modal-close" onclick="closeModal('modalPurchase')">&times;</button>
+      <h2 class="modal-title">CONFIRMAR <span class="gold-text">COMPRA</span></h2>
+      <p class="modal-sub">Revise seus números e finalize o pagamento</p>
+      <div id="purchaseReview"></div>
+      <div class="flex-between mt-1">
+        <button class="btn btn-secondary" onclick="closeModal('modalPurchase')">Voltar</button>
+        <button class="btn btn-primary" onclick="confirmPurchase()">Confirmar e Pagar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIX PAYMENT MODAL -->
+  <div class="modal-overlay hidden" id="modalPix">
+    <div class="modal-box" style="position:relative">
+      <button class="modal-close" onclick="closeModal('modalPix')">&times;</button>
+      <h2 class="modal-title">PAGAMENTO <span class="gold-text">PIX</span></h2>
+      <p class="modal-sub">Escaneie o QR Code ou copie o código</p>
+      <div class="pix-info">
+        <div class="pix-qr-placeholder" id="pixQrCode">QR CODE PIX</div>
+        <div style="margin-top:0.8rem">
+          <div style="font-size:0.75rem;color:var(--text-dim)">Código PIX Copia e Cola:</div>
+          <div class="mono" style="font-size:0.7rem;word-break:break-all;color:var(--gold);margin-top:0.3rem" id="pixCode">
+            00020126580014br.gov.bcb.pix0136lote-premiado...
+          </div>
+        </div>
+        <div class="pix-timer-label" style="margin-top:1rem">Expira em</div>
+        <div class="pix-timer" id="pixTimer">10:00</div>
+        <p style="font-size:0.72rem;color:var(--text-muted);margin-top:0.8rem">
+          As cotas ficarão reservadas por 10 minutos.<br>
+          Simule a confirmação clicando no botão abaixo.
+        </p>
+      </div>
+      <div style="margin-top:1.2rem;text-align:center">
+        <button class="btn btn-success" onclick="simulatePixPayment()">✓ Simular Pagamento Aprovado</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECEIPT MODAL -->
+  <div class="modal-overlay hidden" id="modalReceipt">
+    <div class="modal-box" style="position:relative">
+      <button class="modal-close" onclick="closeModal('modalReceipt')">&times;</button>
+      <h2 class="modal-title">COMPROVANTE</h2>
+      <p class="modal-sub">Sua compra foi confirmada com sucesso</p>
+      <div id="receiptContent"></div>
+      <div style="text-align:center;margin-top:1rem">
+        <button class="btn btn-primary" onclick="closeModal('modalReceipt')">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE/EDIT LOT MODAL -->
+  <div class="modal-overlay hidden" id="modalLot">
+    <div class="modal-box" style="position:relative">
+      <button class="modal-close" onclick="closeModal('modalLot')">&times;</button>
+      <h2 class="modal-title" id="modalLotTitle">NOVO <span class="gold-text">LOTE</span></h2>
+      <p class="modal-sub">Configure o prêmio, custo e quantidade de cotas</p>
+      <form onsubmit="saveLot(event)">
+        <input type="hidden" id="lotEditId" />
+        <div class="form-group">
+          <label class="form-label">Nome do Prêmio</label>
+          <input class="form-input" type="text" id="lotPrizeName" placeholder="Ex: 1000 Gold" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Custo do Prêmio (R$)</label>
+            <input class="form-input" type="number" step="0.01" min="0.01" id="lotPrizeCost" placeholder="59.99" required oninput="calcLotPreview()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Quantidade de Cotas</label>
+            <input class="form-input" type="number" min="2" max="10000" id="lotTicketQty" placeholder="100" required oninput="calcLotPreview()" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Data/Hora de Encerramento (opcional)</label>
+          <input class="form-input" type="datetime-local" id="lotEndDate" />
+        </div>
+        <div class="alert alert-info">
+          <strong>Cálculos Automáticos:</strong>
+          <div id="lotCalcPreview" style="margin-top:0.5rem;font-family:var(--font-mono);font-size:0.85rem;line-height:1.8"></div>
+        </div>
+        <div class="flex-between mt-1">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modalLot')">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Salvar Lote</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DRAW MODAL -->
+  <div class="modal-overlay hidden" id="modalDraw">
+    <div class="modal-box" style="position:relative">
+      <button class="modal-close" onclick="closeModal('modalDraw')">&times;</button>
+      <h2 class="modal-title text-center">SORTEIO</h2>
+      <div id="drawContent"></div>
+    </div>
+  </div>
+
+  <!-- === FOOTER === -->
+  <footer class="app-footer">
+    <p>Lote Premiado &copy; 2026 — Sistema de Rifa de Recargas</p>
+  </footer>
+
+  <script>
+    // ════════════════════════════════════════════
+    // DATA LAYER
+    // ════════════════════════════════════════════
+    const DB = {
+      get(k) { try { return JSON.parse(localStorage.getItem('lp_' + k)) || null; } catch { return null; } },
+      set(k, v) { localStorage.setItem('lp_' + k, JSON.stringify(v)); },
+      init() {
+        if (!this.get('lots')) this.set('lots', []);
+        if (!this.get('users')) this.set('users', []);
+        if (!this.get('tickets')) this.set('tickets', []);
+        if (!this.get('purchases')) this.set('purchases', []);
+        if (!this.get('session')) this.set('session', null);
+        if (!this.get('adminAuth')) this.set('adminAuth', false);
+        if (!this.get('seeded')) { this.seed(); this.set('seeded', true); }
+      },
+      seed() {
+        const lots = [
+          { id: 'L001', prizeName: '100 Gold', prizeCost: 7.99, ticketQty: 100, endDate: '', status: 'active', createdAt: new Date(Date.now() - 86400000*3).toISOString() },
+          { id: 'L002', prizeName: '500 Gold', prizeCost: 33.99, ticketQty: 100, endDate: '', status: 'active', createdAt: new Date(Date.now() - 86400000*2).toISOString() },
+          { id: 'L003', prizeName: '1000 Gold', prizeCost: 59.99, ticketQty: 100, endDate: '', status: 'active', createdAt: new Date(Date.now() - 86400000).toISOString() },
+          { id: 'L004', prizeName: '3000 Gold', prizeCost: 129.99, ticketQty: 100, endDate: '', status: 'active', createdAt: new Date().toISOString() },
+          { id: 'L005', prizeName: '5000 Gold', prizeCost: 249.97, ticketQty: 100, endDate: '', status: 'active', createdAt: new Date().toISOString() },
+        ];
+        this.set('lots', lots);
+        // Create tickets for each lot
+        const tickets = [];
+        lots.forEach(lot => {
+          for (let i = 1; i <= lot.ticketQty; i++) {
+            tickets.push({ lotId: lot.id, number: i, status: 'available', userId: null, purchaseId: null });
+          }
+        });
+        this.set('tickets', tickets);
+        // Seed some demo users
+        const users = [
+          { id: 'U001', name: 'Jogador1', email: 'jogador1@email.com', password: '123456', createdAt: new Date().toISOString() },
+          { id: 'U002', name: 'GamerPro', email: 'gamer@email.com', password: '123456', createdAt: new Date().toISOString() },
+        ];
+        this.set('users', users);
+      }
+    };
+
+    // ════════════════════════════════════════════
+    // CALCULATION HELPERS
+    // ════════════════════════════════════════════
+    function calcMeta(cost) { return round2(cost * 2.5); }
+    function calcTicketPrice(cost, qty) { return round2(calcMeta(cost) / qty); }
+    function calcDrawMin(cost) { return round2(cost * 2.2); }
+    function calcProfit(cost, qty) { return round2(calcMeta(cost) - cost); }
+    function round2(n) { return Math.round(n * 100) / 100; }
+    function fmtBRL(v) { return 'R$ ' + v.toFixed(2).replace('.', ','); }
+    function genId(prefix) { return prefix + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7); }
+
+    function getLotRevenue(lotId) {
+      const tickets = DB.get('tickets').filter(t => t.lotId === lotId && t.status === 'sold');
+      const price = getTicketPrice(lotId);
+      return round2(tickets.length * price);
+    }
+
+    function getTicketPrice(lotId) {
+      const lot = DB.get('lots').find(l => l.id === lotId);
+      if (!lot) return 0;
+      return calcTicketPrice(lot.prizeCost, lot.ticketQty);
+    }
+
+    function getLotStats(lotId) {
+      const tickets = DB.get('tickets').filter(t => t.lotId === lotId);
+      const lot = DB.get('lots').find(l => l.id === lotId);
+      if (!lot) return null;
+      const sold = tickets.filter(t => t.status === 'sold').length;
+      const reserved = tickets.filter(t => t.status === 'reserved').length;
+      const available = tickets.filter(t => t.status === 'available').length;
+      const price = calcTicketPrice(lot.prizeCost, lot.ticketQty);
+      const revenue = round2(sold * price);
+      const meta = calcMeta(lot.prizeCost);
+      const pct = round2((revenue / meta) * 100);
+      const drawMin = calcDrawMin(lot.prizeCost);
+      const canDraw = revenue >= drawMin && sold > 0;
+      return { sold, reserved, available, price, revenue, meta, pct, drawMin, canDraw, total: lot.ticketQty };
+    }
+
+    // ════════════════════════════════════════════
+    // SESSION
+    // ════════════════════════════════════════════
+    function currentUser() { return DB.get('session'); }
+    function isAdmin() { return DB.get('adminAuth') === true; }
+
+    function updateNav() {
+      const user = currentUser();
+      const area = document.getElementById('navAuthArea');
+      const dashBtn = document.getElementById('navDashboard');
+      const adminBtn = document.getElementById('navAdmin');
+      const adminLoginBtn = document.querySelector('[data-nav="admin-login"]');
+
+      if (user) {
+        area.innerHTML = `<div class="nav-user-badge"><div class="avatar">${user.name[0].toUpperCase()}</div><span>${user.name}</span></div>
+          <button class="nav-link" onclick="logout()" style="margin-left:0.5rem">Sair</button>`;
+        dashBtn.classList.remove('hidden');
+      } else {
+        area.innerHTML = `<button class="nav-link nav-link-cta" onclick="navigate('auth')">Entrar</button>`;
+        dashBtn.classList.add('hidden');
+      }
+
+      if (isAdmin()) {
+        adminBtn.classList.remove('hidden');
+        adminLoginBtn.classList.add('hidden');
+      } else {
+        adminBtn.classList.add('hidden');
+        adminLoginBtn.classList.remove('hidden');
+      }
+    }
+
+    // ════════════════════════════════════════════
+    // NAVIGATION
+    // ════════════════════════════════════════════
+    let currentView = 'home';
+    let currentLotId = null;
+    let selectedTickets = [];
+    let currentPurchaseLotId = null;
+    let currentPurchaseTickets = [];
+    let pixTimerInterval = null;
+
+    function navigate(view, data) {
+      document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+      document.querySelectorAll('.nav-link[data-nav]').forEach(n => n.classList.remove('active'));
+
+      const viewEl = document.getElementById('view-' + view);
+      if (viewEl) {
+        viewEl.classList.remove('hidden');
+        currentView = view;
+      }
+
+      const navBtn = document.querySelector(`.nav-link[data-nav="${view}"]`);
+      if (navBtn) navBtn.classList.add('active');
+
+      switch (view) {
+        case 'home': renderLotList(); break;
+        case 'lot': currentLotId = data; selectedTickets = []; renderLotDetail(); break;
+        case 'auth': break;
+        case 'dashboard': renderDashboard(); break;
+        case 'admin': renderAdmin(); break;
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ════════════════════════════════════════════
+    // HOME — LOT LIST
+    // ════════════════════════════════════════════
+    function renderLotList() {
+      const lots = DB.get('lots').filter(l => l.status !== 'cancelled');
+      const container = document.getElementById('lotList');
+      const empty = document.getElementById('lotListEmpty');
+
+      if (lots.length === 0) {
+        container.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      container.innerHTML = lots.map(lot => {
+        const s = getLotStats(lot.id);
+        const badgeClass = lot.status === 'active' ? 'badge-active' : lot.status === 'finished' ? 'badge-finished' : 'badge-cancelled';
+        const badgeText = lot.status === 'active' ? 'Ativo' : lot.status === 'finished' ? 'Finalizado' : 'Cancelado';
+        const pctFill = Math.min(s.pct, 100);
+        return `
+          <div class="card lot-card" onclick="navigate('lot','${lot.id}')">
+            <div class="lot-card-badge ${badgeClass}">${badgeText}</div>
+            <div class="lot-card-prize">${lot.prizeName}</div>
+            <div class="lot-card-name">Cota: ${fmtBRL(s.price)} · ${s.sold}/${s.total} vendidas</div>
+            <div class="lot-stats">
+              <div>
+                <div class="lot-stat-label">Arrecadado</div>
+                <div class="lot-stat-value gold-text">${fmtBRL(s.revenue)}</div>
+              </div>
+              <div>
+                <div class="lot-stat-label">Meta</div>
+                <div class="lot-stat-value">${fmtBRL(s.meta)}</div>
+              </div>
+              <div>
+                <div class="lot-stat-label">Disponíveis</div>
+                <div class="lot-stat-value green-text">${s.available}</div>
+              </div>
+              <div>
+                <div class="lot-stat-label">Sorteio em</div>
+                <div class="lot-stat-value">${fmtBRL(s.drawMin)}</div>
+              </div>
+              <div class="progress-bar-wrap">
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pctFill}%"></div></div>
+                <div class="progress-label"><span>${s.pct.toFixed(1)}% da meta</span><span>${s.sold} vendidas</span></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ════════════════════════════════════════════
+    // LOT DETAIL
+    // ════════════════════════════════════════════
+    function renderLotDetail() {
+      const lot = DB.get('lots').find(l => l.id === currentLotId);
+      if (!lot) { navigate('home'); return; }
+      const s = getLotStats(lot.id);
+      const tickets = DB.get('tickets').filter(t => t.lotId === lot.id);
+      const user = currentUser();
+      const pctFill = Math.min(s.pct, 100);
+
+      // Find winner if finished
+      let winnerHtml = '';
+      if (lot.winnerNumber) {
+        const winTicket = tickets.find(t => t.number === lot.winnerNumber);
+        const winnerUser = winTicket ? DB.get('users').find(u => u.id === winTicket.userId) : null;
+        winnerHtml = `
+          <div class="winner-banner">
+            <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin-bottom:0.3rem">Número Vencedor</div>
+            <div class="winner-banner-number">${String(lot.winnerNumber).padStart(3, '0')}</div>
+            <div class="winner-banner-name">${winnerUser ? winnerUser.name : 'N/A'}</div>
+          </div>
+        `;
+      }
+
+      const canDraw = s.canDraw && lot.status === 'active';
+
+      const html = `
+        ${winnerHtml}
+        <div class="lot-detail-header">
+          <div>
+            <h1 class="lot-detail-prize">${lot.prizeName}</h1>
+            <div class="lot-detail-meta">
+              <span>ID: ${lot.id}</span>
+              <span>Criado em: ${new Date(lot.createdAt).toLocaleDateString('pt-BR')}</span>
+              ${lot.endDate ? '<span>Encerra: ' + new Date(lot.endDate).toLocaleString('pt-BR') + '</span>' : ''}
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:0.5rem;align-items:flex-end">
+            <span class="status-pill ${lot.status === 'active' ? 'pill-active' : lot.status === 'finished' ? 'pill-finished' : 'pill-cancelled'}">
+              ${lot.status === 'active' ? 'ATIVO' : lot.status === 'finished' ? 'FINALIZADO' : 'CANCELADO'}
+            </span>
+            ${canDraw && isAdmin() ? '<button class="btn btn-primary btn-sm" onclick="openDrawModal(\'' + lot.id + '\')">Realizar Sorteio</button>' : ''}
+          </div>
+        </div>
+
+        <div class="lot-info-grid">
+          <div class="info-card">
+            <div class="info-card-label">Valor da Cota</div>
+            <div class="info-card-value gold-text">${fmtBRL(s.price)}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">Total de Cotas</div>
+            <div class="info-card-value">${s.total}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">Vendidas</div>
+            <div class="info-card-value green-text">${s.sold}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">Disponíveis</div>
+            <div class="info-card-value">${s.available}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">Arrecadado</div>
+            <div class="info-card-value gold-text">${fmtBRL(s.revenue)}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">Meta (250%)</div>
+            <div class="info-card-value">${fmtBRL(s.meta)}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">Sorteio em (220%)</div>
+            <div class="info-card-value pink-text">${fmtBRL(s.drawMin)}</div>
+          </div>
+          <div class="info-card">
+            <div class="info-card-label">Progresso</div>
+            <div class="info-card-value">${s.pct.toFixed(1)}%</div>
+          </div>
+        </div>
+
+        <div style="margin-bottom:1.5rem">
+          <div class="progress-bar-bg" style="height:10px"><div class="progress-bar-fill" style="width:${pctFill}%"></div></div>
+          <div class="progress-label" style="margin-top:0.4rem">
+            <span>${fmtBRL(s.revenue)} arrecadado</span>
+            <span>Meta: ${fmtBRL(s.meta)}</span>
+          </div>
+          ${!s.canDraw ? '<div class="alert alert-warning" style="margin-top:0.8rem">Faltam ' + fmtBRL(Math.max(0, s.drawMin - s.revenue)) + ' para liberar o sorteio (mínimo: ' + fmtBRL(s.drawMin) + ')</div>' : '<div class="alert alert-success" style="margin-top:0.8rem">Meta mínima atingida! Sorteio pode ser realizado.</div>'}
+        </div>
+
+        <div class="ticket-section">
+          <h2 class="ticket-section-title">SELECIONE SEUS <span class="gold-text">NÚMEROS</span></h2>
+          <p class="ticket-section-sub">${lot.status === 'active' ? 'Clique nos números disponíveis para selecioná-los' : 'Este lote não está mais ativo para compras'}</p>
+          <div class="ticket-filters">
+            <button class="ticket-filter-btn active" onclick="filterTickets('all', this)">Todos</button>
+            <button class="ticket-filter-btn" onclick="filterTickets('available', this)">Disponíveis</button>
+            <button class="ticket-filter-btn" onclick="filterTickets('sold', this)">Vendidas</button>
+            ${user ? '<button class="ticket-filter-btn" onclick="filterTickets(\'mine\', this)">Minhas</button>' : ''}
+          </div>
+          <div class="ticket-grid" id="ticketGrid">
+            ${tickets.map(t => {
+              let cls = t.status;
+              if (user && t.userId === user.id && t.status === 'sold') cls = 'mine';
+              return `<div class="ticket-cell ${cls}" data-num="${t.number}" data-status="${t.status}" data-userid="${t.userId || ''}" onclick="toggleTicket(${t.number}, '${t.status}', '${t.userId || ''}')">${String(t.number).padStart(3, '0')}</div>`;
+            }).join('')}
+          </div>
+          <div class="ticket-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--bg-card2);border:1.5px solid var(--border)"></div> Disponível</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--gold)"></div> Selecionado</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--purple-dim);border:1.5px solid rgba(124,58,237,0.4)"></div> Vendida</div>
+            ${user ? '<div class="legend-item"><div class="legend-dot" style="background:var(--neon-green-dim);border:1.5px solid rgba(0,255,136,0.4)"></div> Minha</div>' : ''}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('lotDetailContent').innerHTML = html;
+      updatePurchaseSummary();
+    }
+
+    function filterTickets(filter, btn) {
+      document.querySelectorAll('.ticket-filter-btn').forEach(b => b.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      const user = currentUser();
+      document.querySelectorAll('.ticket-cell').forEach(cell => {
+        const status = cell.dataset.status;
+        const userId = cell.dataset.userid;
+        let show = true;
+        if (filter === 'available') show = status === 'available';
+        else if (filter === 'sold') show = status === 'sold';
+        else if (filter === 'mine') show = user && userId === user.id && status === 'sold';
+        cell.style.display = show ? '' : 'none';
+      });
+    }
+
+    function toggleTicket(num, status, userId) {
+      const lot = DB.get('lots').find(l => l.id === currentLotId);
+      if (!lot || lot.status !== 'active') return;
+      const user = currentUser();
+      if (!user) { navigate('auth'); return; }
+
+      const cell = document.querySelector(`.ticket-cell[data-num="${num}"]`);
+      if (status === 'available') {
+        const idx = selectedTickets.indexOf(num);
+        if (idx > -1) {
+          selectedTickets.splice(idx, 1);
+          cell.classList.remove('selected');
+          cell.classList.add('available');
+        } else {
+          selectedTickets.push(num);
+          cell.classList.remove('available');
+          cell.classList.add('selected');
+        }
+      } else if (status === 'sold' && userId === user.id) {
+        // Already owned - no action
+      }
+      updatePurchaseSummary();
+    }
+
+    function clearSelection() {
+      selectedTickets = [];
+      document.querySelectorAll('.ticket-cell.selected').forEach(c => {
+        c.classList.remove('selected');
+        c.classList.add('available');
+      });
+      updatePurchaseSummary();
+    }
+
+    function randomSelect() {
+      const lot = DB.get('lots').find(l => l.id === currentLotId);
+      if (!lot) return;
+      const user = currentUser();
+      if (!user) { navigate('auth'); return; }
+      clearSelection();
+      const available = DB.get('tickets').filter(t => t.lotId === currentLotId && t.status === 'available');
+      const qty = Math.min(5, available.length);
+      const shuffled = available.sort(() => Math.random() - 0.5).slice(0, qty);
+      shuffled.forEach(t => {
+        selectedTickets.push(t.number);
+        const cell = document.querySelector(`.ticket-cell[data-num="${t.number}"]`);
+        if (cell) { cell.classList.remove('available'); cell.classList.add('selected'); }
+      });
+      updatePurchaseSummary();
+    }
+
+    function updatePurchaseSummary() {
+      const summary = document.getElementById('purchaseSummary');
+      const lot = DB.get('lots').find(l => l.id === currentLotId);
+      if (!lot || selectedTickets.length === 0) {
+        summary.classList.add('hidden');
+        return;
+      }
+      summary.classList.remove('hidden');
+      const price = calcTicketPrice(lot.prizeCost, lot.ticketQty);
+      const total = round2(price * selectedTickets.length);
+      document.getElementById('purchaseSummaryCount').textContent = `${selectedTickets.length} cota${selectedTickets.length > 1 ? 's' : ''} selecionada${selectedTickets.length > 1 ? 's' : ''}`;
+      document.getElementById('purchaseSummaryTotal').textContent = fmtBRL(total);
+      document.getElementById('btnBuy').disabled = false;
+    }
+
+    // ════════════════════════════════════════════
+    // PURCHASE FLOW
+    // ════════════════════════════════════════════
+    function openPurchaseModal() {
+      const user = currentUser();
+      if (!user) { navigate('auth'); return; }
+      const lot = DB.get('lots').find(l => l.id === currentLotId);
+      if (!lot) return;
+      if (selectedTickets.length === 0) return;
+
+      const price = calcTicketPrice(lot.prizeCost, lot.ticketQty);
+      const total = round2(price * selectedTickets.length);
+      const nums = [...selectedTickets].sort((a,b) => a-b).map(n => String(n).padStart(3, '0')).join(', ');
+
+      document.getElementById('purchaseReview').innerHTML = `
+        <div style="background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem;margin-bottom:1rem">
+          <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+            <span style="color:var(--text-dim)">Prêmio</span>
+            <span class="gold-text" style="font-weight:700">${lot.prizeName}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+            <span style="color:var(--text-dim)">Quantidade</span>
+            <span style="font-weight:600">${selectedTickets.length} cota${selectedTickets.length > 1 ? 's' : ''}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+            <span style="color:var(--text-dim)">Números</span>
+            <span class="mono" style="font-weight:600">${nums}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+            <span style="color:var(--text-dim)">Valor unitário</span>
+            <span class="mono">${fmtBRL(price)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding-top:0.5rem;border-top:1px solid var(--border)">
+            <span style="font-weight:700;font-size:1rem">Total</span>
+            <span class="mono green-text" style="font-weight:700;font-size:1.2rem">${fmtBRL(total)}</span>
+          </div>
+        </div>
+        <div class="alert alert-info">Ao confirmar, as cotas serão reservadas por 10 minutos para pagamento via PIX.</div>
+      `;
+
+      currentPurchaseLotId = currentLotId;
+      currentPurchaseTickets = [...selectedTickets];
+      openModal('modalPurchase');
+    }
+
+    function confirmPurchase() {
+      closeModal('modalPurchase');
+      const lot = DB.get('lots').find(l => l.id === currentPurchaseLotId);
+      const user = currentUser();
+      if (!lot || !user) return;
+
+      // Reserve tickets
+      const allTickets = DB.get('tickets');
+      currentPurchaseTickets.forEach(num => {
+        const t = allTickets.find(tk => tk.lotId === currentPurchaseLotId && tk.number === num);
+        if (t && t.status === 'available') {
+          t.status = 'reserved';
+          t.userId = user.id;
+          t.reservedAt = Date.now();
+        }
+      });
+      DB.set('tickets', allTickets);
+
+      // Create pending purchase
+      const purchases = DB.get('purchases');
+      const price = calcTicketPrice(lot.prizeCost, lot.ticketQty);
+      const total = round2(price * currentPurchaseTickets.length);
+      const purchase = {
+        id: genId('P'),
+        lotId: currentPurchaseLotId,
+        userId: user.id,
+        ticketNumbers: [...currentPurchaseTickets],
+        quantity: currentPurchaseTickets.length,
+        unitPrice: price,
+        total,
+        status: 'reserved',
+        createdAt: new Date().toISOString()
+      };
+      purchases.push(purchase);
+      DB.set('purchases', purchases);
+
+      // Open PIX modal
+      openPixModal(purchase);
+    }
+
+    function openPixModal(purchase) {
+      openModal('modalPix');
+      // Start timer
+      let seconds = 600; // 10 min
+      clearInterval(pixTimerInterval);
+      pixTimerInterval = setInterval(() => {
+        seconds--;
+        if (seconds <= 0) {
+          clearInterval(pixTimerInterval);
+          releaseReservedTickets(purchase.id);
+          closeModal('modalPix');
+          alert('Tempo esgotado! As cotas foram liberadas.');
+          renderLotDetail();
+          return;
+        }
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        document.getElementById('pixTimer').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      }, 1000);
+    }
+
+    function simulatePixPayment() {
+      clearInterval(pixTimerInterval);
+      closeModal('modalPix');
+
+      // Find the pending purchase
+      const purchases = DB.get('purchases');
+      const purchase = purchases.filter(p => p.status === 'reserved' && p.lotId === currentPurchaseLotId && p.userId === currentUser().id).pop();
+      if (!purchase) return;
+
+      // Approve purchase
+      purchase.status = 'paid';
+      purchase.paidAt = new Date().toISOString();
+      DB.set('purchases', purchases);
+
+      // Transfer tickets to sold
+      const allTickets = DB.get('tickets');
+      purchase.ticketNumbers.forEach(num => {
+        const t = allTickets.find(tk => tk.lotId === purchase.lotId && tk.number === num);
+        if (t) {
+          t.status = 'sold';
+          t.purchaseId = purchase.id;
+        }
+      });
+      DB.set('tickets', allTickets);
+
+      // Check if lot should auto-finish (all sold)
+      const lot = DB.get('lots').find(l => l.id === purchase.lotId);
+      const stats = getLotStats(purchase.lotId);
+      if (stats && stats.sold === stats.total && lot.status === 'active') {
+        // All tickets sold - could auto-draw
+      }
+
+      // Show receipt
+      showReceipt(purchase);
+
+      // Refresh view
+      selectedTickets = [];
+      renderLotDetail();
+    }
+
+    function releaseReservedTickets(purchaseId) {
+      const allTickets = DB.get('tickets');
+      const purchases = DB.get('purchases');
+      const purchase = purchases.find(p => p.id === purchaseId);
+      if (!purchase) return;
+
+      purchase.ticketNumbers.forEach(num => {
+        const t = allTickets.find(tk => tk.lotId === purchase.lotId && tk.number === num);
+        if (t && t.status === 'reserved') {
+          t.status = 'available';
+          t.userId = null;
+        }
+      });
+      purchase.status = 'expired';
+      DB.set('tickets', allTickets);
+      DB.set('purchases', purchases);
+    }
+
+    function showReceipt(purchase) {
+      const lot = DB.get('lots').find(l => l.id === purchase.lotId);
+      const user = DB.get('users').find(u => u.id === purchase.userId);
+      const nums = purchase.ticketNumbers.sort((a,b) => a-b).map(n => String(n).padStart(3,'0')).join(', ');
+
+      document.getElementById('receiptContent').innerHTML = `
+        <div class="receipt">
+          <div class="receipt-header">
+            <h2>Lote Premiado</h2>
+            <p>Comprovante de Compra</p>
+          </div>
+          <div class="receipt-row"><span class="label">Prêmio</span><span class="value">${lot ? lot.prizeName : ''}</span></div>
+          <div class="receipt-row"><span class="label">Comprador</span><span class="value">${user ? user.name : ''}</span></div>
+          <div class="receipt-row"><span class="label">Qtd. Cotas</span><span class="value">${purchase.quantity}</span></div>
+          <div class="receipt-row"><span class="label">Números</span><span class="value">${nums}</span></div>
+          <div class="receipt-row"><span class="label">Valor Unitário</span><span class="value">${fmtBRL(purchase.unitPrice)}</span></div>
+          <div class="receipt-row"><span class="label">Data/Hora</span><span class="value">${new Date(purchase.paidAt || purchase.createdAt).toLocaleString('pt-BR')}</span></div>
+          <div class="receipt-row"><span class="label">Status</span><span class="value" style="color:#00aa55">PAGO ✓</span></div>
+          <div class="receipt-total"><span>Total Pago</span><span>${fmtBRL(purchase.total)}</span></div>
+          <div class="receipt-footer">
+            ID: ${purchase.id}<br>
+            Obrigado por participar!
+          </div>
+        </div>
+      `;
+      openModal('modalReceipt');
+    }
+
+    // ════════════════════════════════════════════
+    // AUTH
+    // ════════════════════════════════════════════
+    let authMode = 'login';
+
+    function switchAuthTab(mode) {
+      authMode = mode;
+      document.getElementById('tabLogin').classList.toggle('active', mode === 'login');
+      document.getElementById('tabRegister').classList.toggle('active', mode === 'register');
+      document.getElementById('authNameGroup').classList.toggle('hidden', mode === 'login');
+      document.getElementById('authSubmitBtn').textContent = mode === 'login' ? 'Entrar' : 'Criar Conta';
+      document.getElementById('authError').classList.add('hidden');
+    }
+
+    function handleAuth(e) {
+      e.preventDefault();
+      const email = document.getElementById('authEmail').value.trim();
+      const pass = document.getElementById('authPass').value;
+      const errEl = document.getElementById('authError');
+      const users = DB.get('users');
+
+      if (authMode === 'login') {
+        const user = users.find(u => u.email === email && u.password === pass);
+        if (!user) {
+          errEl.textContent = 'E-mail ou senha incorretos.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        DB.set('session', user);
+        updateNav();
+        navigate('dashboard');
+      } else {
+        const name = document.getElementById('authName').value.trim();
+        if (!name) {
+          errEl.textContent = 'Informe seu nome ou apelido.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        if (users.find(u => u.email === email)) {
+          errEl.textContent = 'Este e-mail já está cadastrado.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        const newUser = { id: genId('U'), name, email, password: pass, createdAt: new Date().toISOString() };
+        users.push(newUser);
+        DB.set('users', users);
+        DB.set('session', newUser);
+        updateNav();
+        navigate('dashboard');
+      }
+    }
+
+    function logout() {
+      DB.set('session', null);
+      updateNav();
+      navigate('home');
+    }
+
+    // ════════════════════════════════════════════
+    // USER DASHBOARD
+    // ════════════════════════════════════════════
+    function renderDashboard() {
+      const user = currentUser();
+      if (!user) { navigate('auth'); return; }
+
+      document.getElementById('dashWelcome').textContent = `Olá, ${user.name}!`;
+
+      const tickets = DB.get('tickets').filter(t => t.userId === user.id && t.status === 'sold');
+      const purchases = DB.get('purchases').filter(p => p.userId === user.id && p.status === 'paid');
+      const lots = DB.get('lots');
+
+      // Stats
+      const totalSpent = purchases.reduce((a, p) => a + p.total, 0);
+      const uniqueLots = new Set(purchases.map(p => p.lotId)).size;
+      let wins = 0;
+      lots.forEach(lot => {
+        if (lot.winnerUserId === user.id) wins++;
+      });
+
+      document.getElementById('dashStats').innerHTML = `
+        <div class="stat-card gold"><div class="stat-label">Total Gasto</div><div class="stat-value gold-text">${fmtBRL(totalSpent)}</div></div>
+        <div class="stat-card green"><div class="stat-label">Cotas Possuídas</div><div class="stat-value green-text">${tickets.length}</div></div>
+        <div class="stat-card blue"><div class="stat-label">Compras Realizadas</div><div class="stat-value">${purchases.length}</div></div>
+        <div class="stat-card pink"><div class="stat-label">Prêmios Ganhos</div><div class="stat-value pink-text">${wins}</div></div>
+      `;
+
+      // Tickets by lot
+      const byLot = {};
+      tickets.forEach(t => {
+        if (!byLot[t.lotId]) byLot[t.lotId] = [];
+        byLot[t.lotId].push(t.number);
+      });
+
+      let ticketsHtml = '';
+      Object.keys(byLot).forEach(lotId => {
+        const lot = lots.find(l => l.id === lotId);
+        if (!lot) return;
+        const nums = byLot[lotId].sort((a,b) => a-b);
+        const isWinner = lot.winnerNumber && nums.includes(lot.winnerNumber) && lot.winnerUserId === user.id;
+        ticketsHtml += `
+          <div class="card" style="margin-bottom:1rem">
+            <div class="flex-between">
+              <div>
+                <div style="font-family:var(--font-display);font-size:1.4rem;color:var(--gold)">${lot.prizeName}</div>
+                <div style="font-size:0.78rem;color:var(--text-dim)">${nums.length} cota${nums.length > 1 ? 's' : ''}</div>
+              </div>
+              <div>
+                <span class="status-pill ${lot.status === 'active' ? 'pill-active' : lot.status === 'finished' ? 'pill-finished' : 'pill-cancelled'}">${lot.status === 'active' ? 'ATIVO' : lot.status === 'finished' ? 'FINALIZADO' : 'CANCELADO'}</span>
+                ${isWinner ? '<span class="status-pill pill-paid" style="margin-left:0.5rem">GANHOU!</span>' : ''}
+              </div>
+            </div>
+            <div style="margin-top:0.8rem;display:flex;flex-wrap:wrap;gap:0.3rem">
+              ${nums.map(n => `<span class="mono" style="background:var(--neon-green-dim);color:var(--neon-green);padding:0.2rem 0.5rem;border-radius:4px;font-size:0.78rem">${String(n).padStart(3,'0')}</span>`).join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      document.getElementById('dashTickets').innerHTML = ticketsHtml || '<div class="empty-state"><p class="empty-state-text">Nenhuma cota comprada ainda.</p></div>';
+
+      // Purchase history
+      let histHtml = '';
+      if (purchases.length > 0) {
+        const sorted = [...purchases].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        histHtml = `<div class="table-wrap"><table>
+          <thead><tr><th>Data</th><th>Prêmio</th><th>Qtd</th><th>Números</th><th>Total</th><th>Status</th></tr></thead>
+          <tbody>
+          ${sorted.map(p => {
+            const lot = lots.find(l => l.id === p.lotId);
+            return `<tr>
+              <td class="mono" style="font-size:0.75rem">${new Date(p.createdAt).toLocaleDateString('pt-BR')}</td>
+              <td>${lot ? lot.prizeName : 'N/A'}</td>
+              <td class="mono">${p.quantity}</td>
+              <td class="mono" style="font-size:0.75rem">${p.ticketNumbers.sort((a,b)=>a-b).map(n => String(n).padStart(3,'0')).join(', ')}</td>
+              <td class="mono green-text">${fmtBRL(p.total)}</td>
+              <td><span class="status-pill pill-paid">Pago</span></td>
+            </tr>`;
+          }).join('')}
+          </tbody>
+        </table></div>`;
+      }
+      document.getElementById('dashHistory').innerHTML = histHtml || '<div class="empty-state"><p class="empty-state-text">Nenhuma compra realizada.</p></div>';
+    }
+
+    // ════════════════════════════════════════════
+    // ADMIN
+    // ════════════════════════════════════════════
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const pass = document.getElementById('adminPass').value;
+      if (pass === 'admin123') {
+        DB.set('adminAuth', true);
+        updateNav();
+        navigate('admin');
+      } else {
+        const errEl = document.getElementById('adminLoginError');
+        errEl.textContent = 'Senha incorreta.';
+        errEl.classList.remove('hidden');
+      }
+    }
+
+    function adminLogout() {
+      DB.set('adminAuth', false);
+      updateNav();
+      navigate('home');
+    }
+
+    let adminTab = 'overview';
+
+    function switchAdminTab(tab) {
+      adminTab = tab;
+      document.querySelectorAll('.admin-sidebar-link').forEach(b => b.classList.remove('active'));
+      document.querySelector(`[data-admintab="${tab}"]`).classList.add('active');
+      renderAdminContent();
+    }
+
+    function renderAdmin() {
+      if (!isAdmin()) { navigate('admin-login'); return; }
+      renderAdminContent();
+    }
+
+    function renderAdminContent() {
+      const el = document.getElementById('adminContent');
+      const lots = DB.get('lots');
+      const purchases = DB.get('purchases');
+      const users = DB.get('users');
+      const tickets = DB.get('tickets');
+
+      switch (adminTab) {
+        case 'overview': {
+          const totalRev = purchases.filter(p => p.status === 'paid').reduce((a, p) => a + p.total, 0);
+          const totalCost = purchases.filter(p => p.status === 'paid').reduce((a, p) => {
+            const lot = lots.find(l => l.id === p.lotId);
+            if (!lot) return a;
+            const costPerTicket = lot.prizeCost / lot.ticketQty;
+            return a + costPerTicket * p.quantity;
+          }, 0);
+          const profit = round2(totalRev - totalCost);
+          const soldCount = tickets.filter(t => t.status === 'sold').length;
+          const activeLots = lots.filter(l => l.status === 'active').length;
+          const finishedLots = lots.filter(l => l.status === 'finished').length;
+          const prizesDelivered = lots.filter(l => l.winnerNumber).length;
+
+          const recentPurchases = [...purchases].filter(p => p.status === 'paid').sort((a, b) => new Date(b.paidAt || b.createdAt) - new Date(a.paidAt || a.createdAt)).slice(0, 10);
+
+          el.innerHTML = `
+            <div class="dash-stats">
+              <div class="stat-card gold"><div class="stat-label">Total Arrecadado</div><div class="stat-value gold-text">${fmtBRL(totalRev)}</div></div>
+              <div class="stat-card green"><div class="stat-label">Lucro Obtido</div><div class="stat-value green-text">${fmtBRL(profit)}</div></div>
+              <div class="stat-card blue"><div class="stat-label">Total de Usuários</div><div class="stat-value">${users.length}</div></div>
+              <div class="stat-card pink"><div class="stat-label">Cotas Vendidas</div><div class="stat-value">${soldCount}</div></div>
+              <div class="stat-card purple"><div class="stat-label">Lotes Ativos</div><div class="stat-value">${activeLots}</div></div>
+              <div class="stat-card gold"><div class="stat-label">Lotes Finalizados</div><div class="stat-value">${finishedLots}</div></div>
+              <div class="stat-card green"><div class="stat-label">Prêmios Entregues</div><div class="stat-value">${prizesDelivered}</div></div>
+            </div>
+            <h2 style="font-family:var(--font-display);font-size:1.3rem;letter-spacing:0.04em;margin-bottom:0.8rem">ÚLTIMAS COMPRAS</h2>
+            ${recentPurchases.length > 0 ? `<div class="table-wrap"><table>
+              <thead><tr><th>Data</th><th>Usuário</th><th>Prêmio</th><th>Qtd</th><th>Total</th></tr></thead>
+              <tbody>
+              ${recentPurchases.map(p => {
+                const u = users.find(usr => usr.id === p.userId);
+                const lot = lots.find(l => l.id === p.lotId);
+                return `<tr>
+                  <td class="mono" style="font-size:0.75rem">${new Date(p.paidAt || p.createdAt).toLocaleString('pt-BR')}</td>
+                  <td>${u ? u.name : 'N/A'}</td>
+                  <td>${lot ? lot.prizeName : 'N/A'}</td>
+                  <td class="mono">${p.quantity}</td>
+                  <td class="mono green-text">${fmtBRL(p.total)}</td>
+                </tr>`;
+              }).join('')}
+              </tbody>
+            </table></div>` : '<p style="color:var(--text-dim);font-size:0.85rem">Nenhuma compra ainda.</p>'}
+          `;
+          break;
+        }
+
+        case 'lots': {
+          el.innerHTML = `
+            <div class="flex-between mb-1">
+              <h2 style="font-family:var(--font-display);font-size:1.3rem;letter-spacing:0.04em">GERENCIAR LOTES</h2>
+              <button class="btn btn-primary btn-sm" onclick="openNewLot()">+ Novo Lote</button>
+            </div>
+            <div class="table-wrap"><table>
+              <thead><tr><th>ID</th><th>Prêmio</th><th>Custo</th><th>Cotas</th><th>Preço/Cota</th><th>Vendidas</th><th>Arrecadado</th><th>Meta</th><th>Status</th><th>Ações</th></tr></thead>
+              <tbody>
+              ${lots.map(lot => {
+                const s = getLotStats(lot.id);
+                return `<tr>
+                  <td class="mono" style="font-size:0.72rem">${lot.id}</td>
+                  <td style="font-weight:600;color:var(--gold)">${lot.prizeName}</td>
+                  <td class="mono">${fmtBRL(lot.prizeCost)}</td>
+                  <td class="mono">${lot.ticketQty}</td>
+                  <td class="mono">${fmtBRL(s.price)}</td>
+                  <td class="mono">${s.sold}/${s.total}</td>
+                  <td class="mono green-text">${fmtBRL(s.revenue)}</td>
+                  <td class="mono">${fmtBRL(s.meta)}</td>
+                  <td><span class="status-pill ${lot.status === 'active' ? 'pill-active' : lot.status === 'finished' ? 'pill-finished' : 'pill-cancelled'}">${lot.status === 'active' ? 'Ativo' : lot.status === 'finished' ? 'Finalizado' : 'Cancelado'}</span></td>
+                  <td style="white-space:nowrap">
+                    <button class="btn btn-secondary btn-sm" onclick="openEditLot('${lot.id}')" style="margin-right:0.3rem">Editar</button>
+                    ${lot.status === 'active' ? `<button class="btn btn-danger btn-sm" onclick="cancelLot('${lot.id}')">Cancelar</button>` : ''}
+                    ${s.canDraw && lot.status === 'active' ? `<button class="btn btn-primary btn-sm" onclick="openDrawModal('${lot.id}')" style="margin-left:0.3rem">Sortear</button>` : ''}
+                  </td>
+                </tr>`;
+              }).join('')}
+              </tbody>
+            </table></div>
+          `;
+          break;
+        }
+
+        case 'purchases': {
+          const paid = [...purchases].filter(p => p.status === 'paid').sort((a, b) => new Date(b.paidAt || b.createdAt) - new Date(a.paidAt || a.createdAt));
+          el.innerHTML = `
+            <h2 style="font-family:var(--font-display);font-size:1.3rem;letter-spacing:0.04em;margin-bottom:0.8rem">TODAS AS COMPRAS</h2>
+            <div class="search-bar">
+              <span class="search-icon">🔍</span>
+              <input placeholder="Pesquisar por usuário ou número..." id="purchaseSearch" oninput="filterPurchases()" />
+            </div>
+            <div id="purchasesTable">
+            ${paid.length > 0 ? renderPurchasesTable(paid, users, lots) : '<p style="color:var(--text-dim);font-size:0.85rem">Nenhuma compra registrada.</p>'}
+            </div>
+          `;
+          break;
+        }
+
+        case 'users': {
+          el.innerHTML = `
+            <h2 style="font-family:var(--font-display);font-size:1.3rem;letter-spacing:0.04em;margin-bottom:0.8rem">USUÁRIOS CADASTRADOS</h2>
+            <div class="table-wrap"><table>
+              <thead><tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Cotas Compradas</th><th>Total Gasto</th><th>Prêmios</th><th>Cadastro</th></tr></thead>
+              <tbody>
+              ${users.map(u => {
+                const uPurchases = purchases.filter(p => p.userId === u.id && p.status === 'paid');
+                const uTickets = tickets.filter(t => t.userId === u.id && t.status === 'sold');
+                const totalSpent = uPurchases.reduce((a, p) => a + p.total, 0);
+                const prizes = lots.filter(l => l.winnerUserId === u.id).length;
+                return `<tr>
+                  <td class="mono" style="font-size:0.72rem">${u.id}</td>
+                  <td style="font-weight:600">${u.name}</td>
+                  <td style="font-size:0.82rem">${u.email}</td>
+                  <td class="mono">${uTickets.length}</td>
+                  <td class="mono green-text">${fmtBRL(totalSpent)}</td>
+                  <td class="mono">${prizes}</td>
+                  <td class="mono" style="font-size:0.75rem">${new Date(u.createdAt).toLocaleDateString('pt-BR')}</td>
+                </tr>`;
+              }).join('')}
+              </tbody>
+            </table></div>
+          `;
+          break;
+        }
+
+        case 'draws': {
+          const finishedOrDrawn = lots.filter(l => l.winnerNumber || l.status === 'finished');
+          const drawable = lots.filter(l => {
+            const s = getLotStats(l.id);
+            return s && s.canDraw && l.status === 'active';
+          });
+
+          el.innerHTML = `
+            <h2 style="font-family:var(--font-display);font-size:1.3rem;letter-spacing:0.04em;margin-bottom:0.8rem">SORTEIOS</h2>
+            ${drawable.length > 0 ? `
+              <div class="alert alert-success mb-1">Lotes prontos para sorteio: ${drawable.map(l => l.prizeName).join(', ')}</div>
+            ` : ''}
+            <div class="table-wrap"><table>
+              <thead><tr><th>Prêmio</th><th>Vendidas</th><th>Arrecadado</th><th>Mín. Sorteio</th><th>Status</th><th>Vencedor</th><th>Ação</th></tr></thead>
+              <tbody>
+              ${lots.map(lot => {
+                const s = getLotStats(lot.id);
+                const winTicket = lot.winnerNumber ? tickets.find(t => t.lotId === lot.id && t.number === lot.winnerNumber) : null;
+                const winUser = winTicket ? users.find(u => u.id === winTicket.userId) : null;
+                return `<tr>
+                  <td style="font-weight:600;color:var(--gold)">${lot.prizeName}</td>
+                  <td class="mono">${s.sold}/${s.total}</td>
+                  <td class="mono green-text">${fmtBRL(s.revenue)}</td>
+                  <td class="mono">${fmtBRL(s.drawMin)}</td>
+                  <td><span class="status-pill ${lot.status === 'active' ? 'pill-active' : lot.status === 'finished' ? 'pill-finished' : 'pill-cancelled'}">${lot.status === 'active' ? 'Ativo' : lot.status === 'finished' ? 'Finalizado' : 'Cancelado'}</span></td>
+                  <td>${lot.winnerNumber ? `<span class="mono gold-text">${String(lot.winnerNumber).padStart(3,'0')}</span> — ${winUser ? winUser.name : 'N/A'}` : '—'}</td>
+                  <td>${s.canDraw && lot.status === 'active' ? `<button class="btn btn-primary btn-sm" onclick="openDrawModal('${lot.id}')">Sortear</button>` : ''}</td>
+                </tr>`;
+              }).join('')}
+              </tbody>
+            </table></div>
+          `;
+          break;
+        }
+      }
+    }
+
+    function renderPurchasesTable(paid, users, lots) {
+      return `<div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Data</th><th>Usuário</th><th>Prêmio</th><th>Qtd</th><th>Números</th><th>Total</th><th>Status</th></tr></thead>
+        <tbody>
+        ${paid.map(p => {
+          const u = users.find(usr => usr.id === p.userId);
+          const lot = lots.find(l => l.id === p.lotId);
+          return `<tr>
+            <td class="mono" style="font-size:0.7rem">${p.id.slice(-8)}</td>
+            <td class="mono" style="font-size:0.75rem">${new Date(p.paidAt || p.createdAt).toLocaleString('pt-BR')}</td>
+            <td>${u ? u.name : 'N/A'}</td>
+            <td style="color:var(--gold)">${lot ? lot.prizeName : 'N/A'}</td>
+            <td class="mono">${p.quantity}</td>
+            <td class="mono" style="font-size:0.72rem">${p.ticketNumbers.sort((a,b)=>a-b).map(n => String(n).padStart(3,'0')).join(', ')}</td>
+            <td class="mono green-text">${fmtBRL(p.total)}</td>
+            <td><span class="status-pill pill-paid">Pago</span></td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table></div>`;
+    }
+
+    function filterPurchases() {
+      const query = document.getElementById('purchaseSearch').value.toLowerCase();
+      const purchases = DB.get('purchases').filter(p => p.status === 'paid');
+      const users = DB.get('users');
+      const lots = DB.get('lots');
+
+      const filtered = purchases.filter(p => {
+        const u = users.find(usr => usr.id === p.userId);
+        const nameMatch = u && u.name.toLowerCase().includes(query);
+        const numMatch = p.ticketNumbers.some(n => String(n).includes(query));
+        return nameMatch || numMatch;
+      }).sort((a, b) => new Date(b.paidAt || b.createdAt) - new Date(a.paidAt || a.createdAt));
+
+      document.getElementById('purchasesTable').innerHTML = filtered.length > 0 ? renderPurchasesTable(filtered, users, lots) : '<p style="color:var(--text-dim);font-size:0.85rem">Nenhum resultado encontrado.</p>';
+    }
+
+    // ════════════════════════════════════════════
+    // LOT CRUD
+    // ════════════════════════════════════════════
+    function openNewLot() {
+      document.getElementById('modalLotTitle').innerHTML = 'NOVO <span class="gold-text">LOTE</span>';
+      document.getElementById('lotEditId').value = '';
+      document.getElementById('lotPrizeName').value = '';
+      document.getElementById('lotPrizeCost').value = '';
+      document.getElementById('lotTicketQty').value = '';
+      document.getElementById('lotEndDate').value = '';
+      document.getElementById('lotCalcPreview').innerHTML = '';
+      openModal('modalLot');
+    }
+
+    function openEditLot(id) {
+      const lot = DB.get('lots').find(l => l.id === id);
+      if (!lot) return;
+      document.getElementById('modalLotTitle').innerHTML = 'EDITAR <span class="gold-text">LOTE</span>';
+      document.getElementById('lotEditId').value = lot.id;
+      document.getElementById('lotPrizeName').value = lot.prizeName;
+      document.getElementById('lotPrizeCost').value = lot.prizeCost;
+      document.getElementById('lotTicketQty').value = lot.ticketQty;
+      document.getElementById('lotEndDate').value = lot.endDate || '';
+      calcLotPreview();
+      openModal('modalLot');
+    }
+
+    function calcLotPreview() {
+      const cost = parseFloat(document.getElementById('lotPrizeCost').value) || 0;
+      const qty = parseInt(document.getElementById('lotTicketQty').value) || 0;
+      if (cost > 0 && qty > 0) {
+        const meta = calcMeta(cost);
+        const price = calcTicketPrice(cost, qty);
+        const drawMin = calcDrawMin(cost);
+        const profit = calcProfit(cost, qty);
+        document.getElementById('lotCalcPreview').innerHTML = `
+          Meta (250%): <strong class="gold-text">${fmtBRL(meta)}</strong><br>
+          Valor/Cota: <strong class="gold-text">${fmtBRL(price)}</strong><br>
+          Sorteio em (220%): <strong class="pink-text">${fmtBRL(drawMin)}</strong><br>
+          Lucro Estimado: <strong class="green-text">${fmtBRL(profit)}</strong>
+        `;
+      }
+    }
+
+    function saveLot(e) {
+      e.preventDefault();
+      const editId = document.getElementById('lotEditId').value;
+      const prizeName = document.getElementById('lotPrizeName').value.trim();
+      const prizeCost = parseFloat(document.getElementById('lotPrizeCost').value);
+      const ticketQty = parseInt(document.getElementById('lotTicketQty').value);
+      const endDate = document.getElementById('lotEndDate').value;
+
+      if (!prizeName || !prizeCost || !ticketQty) return;
+
+      const lots = DB.get('lots');
+      const tickets = DB.get('tickets');
+
+      if (editId) {
+        // Edit
+        const lot = lots.find(l => l.id === editId);
+        if (!lot) return;
+        const oldQty = lot.ticketQty;
+        lot.prizeName = prizeName;
+        lot.prizeCost = prizeCost;
+        lot.ticketQty = ticketQty;
+        lot.endDate = endDate;
+
+        // Recalculate tickets
+        const lotTickets = tickets.filter(t => t.lotId === editId);
+        const soldOrReserved = lotTickets.filter(t => t.status !== 'available');
+
+        if (ticketQty > oldQty) {
+          // Add new tickets
+          for (let i = oldQty + 1; i <= ticketQty; i++) {
+            tickets.push({ lotId: editId, number: i, status: 'available', userId: null, purchaseId: null });
+          }
+        } else if (ticketQty < oldQty) {
+          // Remove available tickets from the end
+          for (let i = oldQty; i > ticketQty; i--) {
+            const idx = tickets.findIndex(t => t.lotId === editId && t.number === i);
+            if (idx > -1 && tickets[idx].status === 'available') {
+              tickets.splice(idx, 1);
+            }
+          }
+        }
+
+        DB.set('lots', lots);
+        DB.set('tickets', tickets);
+      } else {
+        // Create
+        const newLot = {
+          id: genId('L'),
+          prizeName, prizeCost, ticketQty, endDate,
+          status: 'active',
+          createdAt: new Date().toISOString()
+        };
+        lots.push(newLot);
+        DB.set('lots', lots);
+
+        for (let i = 1; i <= ticketQty; i++) {
+          tickets.push({ lotId: newLot.id, number: i, status: 'available', userId: null, purchaseId: null });
+        }
+        DB.set('tickets', tickets);
+      }
+
+      closeModal('modalLot');
+      renderAdminContent();
+    }
+
+    function cancelLot(id) {
+      if (!confirm('Deseja realmente cancelar este lote?')) return;
+      const lots = DB.get('lots');
+      const lot = lots.find(l => l.id === id);
+      if (lot) {
+        lot.status = 'cancelled';
+        DB.set('lots', lots);
+        // Release reserved tickets
+        const tickets = DB.get('tickets');
+        tickets.filter(t => t.lotId === id && t.status === 'reserved').forEach(t => {
+          t.status = 'available';
+          t.userId = null;
+        });
+        DB.set('tickets', tickets);
+        renderAdminContent();
+      }
+    }
+
+    // ════════════════════════════════════════════
+    // DRAW SYSTEM
+    // ════════════════════════════════════════════
+    function openDrawModal(lotId) {
+      const lot = DB.get('lots').find(l => l.id === lotId);
+      if (!lot) return;
+      const stats = getLotStats(lotId);
+      if (!stats.canDraw) {
+        alert('Meta mínima não atingida para realizar o sorteio.');
+        return;
+      }
+
+      const tickets = DB.get('tickets').filter(t => t.lotId === lotId && t.status === 'sold');
+      if (tickets.length === 0) {
+        alert('Nenhuma cota vendida para sortear.');
+        return;
+      }
+
+      document.getElementById('drawContent').innerHTML = `
+        <div style="text-align:center;padding:1rem 0">
+          <p style="color:var(--text-dim);margin-bottom:1rem">Prêmio: <strong class="gold-text">${lot.prizeName}</strong></p>
+          <p style="color:var(--text-dim);margin-bottom:0.5rem">${tickets.length} cotas vendidas participando do sorteio</p>
+          <p style="color:var(--text-dim);margin-bottom:2rem">Arrecadado: <strong class="green-text">${fmtBRL(stats.revenue)}</strong></p>
+          <button class="btn btn-primary btn-lg" onclick="executeDraw('${lotId}')" id="btnExecDraw">🎲 Sortear Número</button>
+        </div>
+      `;
+
+      openModal('modalDraw');
+    }
+
+    function executeDraw(lotId) {
+      const btn = document.getElementById('btnExecDraw');
+      btn.disabled = true;
+      btn.textContent = 'Sorteando...';
+
+      const tickets = DB.get('tickets').filter(t => t.lotId === lotId && t.status === 'sold');
+      const lot = DB.get('lots').find(l => l.id === lotId);
+
+      // Animate random number selection
+      let count = 0;
+      const maxCount = 20;
+      const animInterval = setInterval(() => {
+        const randTicket = tickets[Math.floor(Math.random() * tickets.length)];
+        document.getElementById('drawContent').innerHTML = `
+          <div class="draw-display">
+            <div class="draw-number">${String(randTicket.number).padStart(3, '0')}</div>
+            <div class="draw-winner">Sorteando...</div>
+          </div>
+        `;
+        count++;
+        if (count >= maxCount) {
+          clearInterval(animInterval);
+          // Actual random pick
+          const winner = tickets[Math.floor(Math.random() * tickets.length)];
+          const users = DB.get('users');
+          const winnerUser = users.find(u => u.id === winner.userId);
+
+          // Save result
+          const lots = DB.get('lots');
+          const l = lots.find(lo => lo.id === lotId);
+          l.winnerNumber = winner.number;
+          l.winnerUserId = winner.userId;
+          l.winnerUserName = winnerUser ? winnerUser.name : 'Desconhecido';
+          l.drawDate = new Date().toISOString();
+          l.status = 'finished';
+          DB.set('lots', lots);
+
+          document.getElementById('drawContent').innerHTML = `
+            <div class="draw-display">
+              <div style="font-size:0.8rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.5rem">Número Vencedor</div>
+              <div class="draw-number" style="animation:none">${String(winner.number).padStart(3, '0')}</div>
+              <div class="draw-winner">Vencedor: <strong>${winnerUser ? winnerUser.name : 'N/A'}</strong></div>
+              <p style="color:var(--text-dim);font-size:0.82rem;margin-top:0.5rem">E-mail: ${winnerUser ? winnerUser.email : 'N/A'}</p>
+              <div style="margin-top:1.5rem;display:flex;gap:0.5rem;justify-content:center">
+                <button class="btn btn-secondary btn-sm" onclick="closeModal('modalDraw')">Fechar</button>
+                <button class="btn btn-success btn-sm" onclick="resendPrize('${lotId}')">Reenviar Prêmio</button>
+              </div>
+            </div>
+          `;
+
+          renderAdminContent();
+        }
+      }, 100);
+    }
+
+    function resendPrize(lotId) {
+      const lot = DB.get('lots').find(l => l.id === lotId);
+      if (!lot || !lot.winnerUserId) return;
+      const users = DB.get('users');
+      const user = users.find(u => u.id === lot.winnerUserId);
+      alert(`Prêmio "${lot.prizeName}" reenviado com sucesso para ${user ? user.name : 'vencedor'}!`);
+    }
+
+    // ════════════════════════════════════════════
+    // MODALS
+    // ════════════════════════════════════════════
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+      if (id === 'modalPix') clearInterval(pixTimerInterval);
+    }
+
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(m => {
+      m.addEventListener('click', (e) => {
+        if (e.target === m) closeModal(m.id);
+      });
+    });
+
+    // ════════════════════════════════════════════
+    // INIT
+    // ════════════════════════════════════════════
+    DB.init();
+    updateNav();
+    navigate('home');
+
+    // Auto-release expired reservations every 30s
+    setInterval(() => {
+      const tickets = DB.get('tickets');
+      const purchases = DB.get('purchases');
+      const now = Date.now();
+      let changed = false;
+
+      tickets.forEach(t => {
+        if (t.status === 'reserved' && t.reservedAt && (now - t.reservedAt) > 600000) { // 10 min
+          t.status = 'available';
+          t.userId = null;
+          changed = true;
+        }
+      });
+
+      if (changed) {
+        DB.set('tickets', tickets);
+        purchases.forEach(p => {
+          if (p.status === 'reserved') {
+            const hasReserved = tickets.some(t => t.purchaseId === p.id && t.status === 'reserved');
+            if (!hasReserved) p.status = 'expired';
+          }
+        });
+        DB.set('purchases', purchases);
+      }
+    }, 30000);
+  </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"75124c326cb447fe934cde04713ae013","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
