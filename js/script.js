@@ -61,6 +61,39 @@ function packRevenueTotal(pack){ return pack.cost!=null ? pack.cost*2 : (pack.pr
 function packProfit(pack){ return pack.cost; }
 function soldCount(pack){ return (pack.sold||[]).length; }
 function availableCount(pack){ return pack.totalNumbers - soldCount(pack); }
+function fmtDateTime(iso){
+  if(!iso) return null;
+  const d = new Date(iso);
+  if(isNaN(d.getTime())) return null;
+  return d.toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function toDatetimeLocalValue(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  if(isNaN(d.getTime())) return '';
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function packSchedule(pack){
+  const now = new Date();
+  const start = pack.startsAt ? new Date(pack.startsAt) : null;
+  const end = pack.endsAt ? new Date(pack.endsAt) : null;
+  return {
+    start, end,
+    notStarted: !!(start && now < start),
+    ended: !!(end && now > end)
+  };
+}
+function isPackPurchasable(pack){
+  const sch = packSchedule(pack);
+  return pack.status==='open' && availableCount(pack)>0 && !sch.notStarted && !sch.ended;
+}
+function packScheduleBadge(pack){
+  const sch = packSchedule(pack);
+  if(sch.notStarted) return {cls:'status-closed', label:'Agendado'};
+  if(sch.ended) return {cls:'status-closed', label:'Prazo encerrado'};
+  return null;
+}
 
 function toast(msg){
   const t = document.getElementById('toast');
@@ -276,14 +309,22 @@ function renderDashboard(){
   `;
 }
 function packCardHTML(p){
-  const isOpen = p.status==='open' && availableCount(p)>0;
+  const isOpen = isPackPurchasable(p);
+  const schBadge = packScheduleBadge(p);
+  const badge = schBadge || {cls: isOpen?'status-open':'status-closed', label: isOpen?'Disponível':'Esgotado'};
+  const sch = packSchedule(p);
   return `
     <div class="pack-card">
-      <span class="status-badge ${isOpen?'status-open':'status-closed'}">${isOpen?'Disponível':'Esgotado'}</span>
+      <span class="status-badge ${badge.cls}">${badge.label}</span>
       <div class="pack-icon">${ICON_GOLD}</div>
       <div class="pack-num">PACK #${p.code}</div>
       <div class="pack-name">${p.type.toLocaleString('pt-BR')} Gold Package</div>
       <div class="pack-price">Valor por número<br><b>${fmtBRL(pricePerNumber(p))}</b></div>
+      ${(sch.start || sch.end) ? `
+      <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;">
+        ${sch.start ? `Início: <b style="color:var(--gold);">${fmtDateTime(p.startsAt)}</b><br>` : ''}
+        ${sch.end ? `Término: <b style="color:var(--gold);">${fmtDateTime(p.endsAt)}</b>` : ''}
+      </div>` : ''}
       <button class="pack-btn" ${isOpen?'':'disabled'} onclick="openBuyModal('${p.id}')">Comprar Números</button>
     </div>
   `;
@@ -503,6 +544,15 @@ function renderAdminCreate(){
       </div>
       <div class="field"><label>Quantidade total de números</label><input id="np-qty" type="number" min="1" value="100"></div>
       <div class="field">
+        <label>Programar início (opcional)</label>
+        <input id="np-start" type="datetime-local">
+      </div>
+      <div class="field">
+        <label>Programar término (opcional)</label>
+        <input id="np-end" type="datetime-local">
+        <div style="font-size:11px;color:var(--muted);margin-top:5px;">Deixe em branco para o pack ficar disponível imediatamente e sem prazo para encerrar. Fora do período programado, a compra fica bloqueada automaticamente para os usuários.</div>
+      </div>
+      <div class="field">
         <label>Código de resgate (opcional)</label>
         <input id="np-code" type="text" placeholder="Pode deixar em branco e adicionar depois">
         <div style="font-size:11px;color:var(--muted);margin-top:5px;">Não é obrigatório agora — você pode adicionar assim que recuperar 100% do custo do pack. Esse código nunca aparece para os usuários; ele só é enviado ao vencedor, junto com o número sorteado, após o sorteio.</div>
@@ -547,11 +597,19 @@ async function createPack(){
   const cost = PACK_COSTS[type];
   const qty = Math.max(1, parseInt(document.getElementById('np-qty').value||1));
   const redeemCode = document.getElementById('np-code').value.trim() || null;
+  const startVal = document.getElementById('np-start').value;
+  const endVal = document.getElementById('np-end').value;
+  const startsAt = startVal ? new Date(startVal).toISOString() : null;
+  const endsAt = endVal ? new Date(endVal).toISOString() : null;
+  if(startsAt && endsAt && new Date(endsAt) <= new Date(startsAt)){
+    toast('O término precisa ser depois do início.');
+    return;
+  }
   const pricePerNumber = (cost*2)/qty;
   try{
     const code = await nextPackCode();
     await setDoc(doc(db,'packs',code), {
-      code, type, totalNumbers:qty, sold:[], status:'open', pricePerNumber, createdAt: serverTimestamp()
+      code, type, totalNumbers:qty, sold:[], status:'open', pricePerNumber, startsAt, endsAt, createdAt: serverTimestamp()
     });
     await setDoc(doc(db,'packsPrivate',code), { cost, redeemCode, winner:null });
     toast(`Pack #${code} criado com sucesso!`);
@@ -569,7 +627,9 @@ function renderAdminPacks(){
     <div class="grid pack-grid">
       ${state.packs.map(p=>{
         const full = availableCount(p) <= 0 && p.totalNumbers > 0;
-        const badge = p.winner ? {cls:'status-closed', label:'Sorteado'} : full ? {cls:'status-open', label:'Esgotado'} : {cls: p.status==='open'?'status-open':'status-closed', label: p.status==='open'?'Ativo':'Encerrado'};
+        const schBadge = packScheduleBadge(p);
+        const badge = p.winner ? {cls:'status-closed', label:'Sorteado'} : full ? {cls:'status-open', label:'Esgotado'} : schBadge ? schBadge : {cls: p.status==='open'?'status-open':'status-closed', label: p.status==='open'?'Ativo':'Encerrado'};
+        const sch = packSchedule(p);
         return `
         <div class="pack-card">
           <span class="status-badge ${badge.cls}">${badge.label}</span>
@@ -582,6 +642,11 @@ function renderAdminPacks(){
             <span style="color:#655c4b;">Custo: ${fmtBRL(p.cost)} · Lucro alvo: <span style="color:var(--green);">${fmtBRL(packProfit(p))}</span></span><br>
             <span style="color:#655c4b;">Código de resgate: ${p.redeemCode ? `<span style="color:var(--gold);font-weight:700;">${p.redeemCode}</span>` : '<span style="color:var(--red);">não definido</span>'}</span>
           </div>
+          ${(sch.start || sch.end) ? `
+          <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;">
+            ${sch.start ? `Início: <b style="color:var(--gold);">${fmtDateTime(p.startsAt)}</b><br>` : ''}
+            ${sch.end ? `Término: <b style="color:var(--gold);">${fmtDateTime(p.endsAt)}</b>` : ''}
+          </div>` : ''}
           ${p.winner ? `
           <div style="margin-top:12px;padding:10px 12px;border-radius:12px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.35);font-size:12.5px;">
             🏆 Vencedor: <b style="color:#fff;">${p.winner.userName}</b><br>
@@ -639,6 +704,15 @@ function editPackQty(id){
     <div class="m-sub">${p.type.toLocaleString('pt-BR')} Gold Package</div>
     <div class="field"><label>Quantidade total de números</label><input id="edit-qty" type="number" min="${soldCount(p)}" value="${p.totalNumbers}"></div>
     <div class="field">
+      <label>Programar início (opcional)</label>
+      <input id="edit-start" type="datetime-local" value="${toDatetimeLocalValue(p.startsAt)}">
+    </div>
+    <div class="field">
+      <label>Programar término (opcional)</label>
+      <input id="edit-end" type="datetime-local" value="${toDatetimeLocalValue(p.endsAt)}">
+      <div style="font-size:11px;color:var(--muted);margin-top:5px;">Deixe em branco para não ter agendamento. Fora do período, a compra fica bloqueada automaticamente.</div>
+    </div>
+    <div class="field">
       <label>Código de resgate (opcional)</label>
       <input id="edit-code" type="text" value="${p.redeemCode || ''}" placeholder="Adicione quando recuperar 100% do custo">
       <div style="font-size:11px;color:var(--muted);margin-top:5px;">Visível só para você. É enviado ao vencedor junto com o número sorteado.</div>
@@ -655,9 +729,17 @@ async function saveEditPack(id){
   const v = parseInt(document.getElementById('edit-qty').value||p.totalNumbers);
   if(v < soldCount(p)){ toast('Quantidade não pode ser menor que os números já vendidos.'); return; }
   const redeemCode = document.getElementById('edit-code').value.trim() || null;
+  const startVal = document.getElementById('edit-start').value;
+  const endVal = document.getElementById('edit-end').value;
+  const startsAt = startVal ? new Date(startVal).toISOString() : null;
+  const endsAt = endVal ? new Date(endVal).toISOString() : null;
+  if(startsAt && endsAt && new Date(endsAt) <= new Date(startsAt)){
+    toast('O término precisa ser depois do início.');
+    return;
+  }
   const pricePerNumber = (p.cost*2)/v;
   try{
-    await updateDoc(doc(db,'packs',id), { totalNumbers:v, pricePerNumber });
+    await updateDoc(doc(db,'packs',id), { totalNumbers:v, pricePerNumber, startsAt, endsAt });
     await updateDoc(doc(db,'packsPrivate',id), { redeemCode });
     closeModal('modal-generic');
     toast('Pack atualizado.');
