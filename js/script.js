@@ -253,6 +253,9 @@ function openWhats(){
   const msg = `Olá! Sou ${u.name} e gostaria de falar com o administrador do SO2 Rei dos Golds.`;
   window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
 }
+function openWhatsChannel(){
+  window.open('https://whatsapp.com/channel/0029VbDdiMD2UPBDp8xSUy3w', '_blank');
+}
 
 /* ---------- icon helper ---------- */
 const ICON_GOLD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9"/></svg>`;
@@ -950,7 +953,7 @@ function openGenericModal(html){
 Object.assign(window, {
   changeQty, closeModal, confirmBuy, confirmPayment, contactWinner, createPack,
   deletePack, deleteUser, doDeletePack, doDeleteUser, doLogin, doLogout, doRegister,
-  drawWinner, editPackQty, filterUsers, nav, openBuyModal, openWhats, saveAccount,
+  drawWinner, editPackQty, filterUsers, nav, openBuyModal, openWhats, openWhatsChannel, saveAccount,
   saveEditPack, sendWinnerMessage, showLogin, showRegister, toast, toggleBlock,
   toggleHistory, togglePackStatus, toggleSidebar, toggleUser, updateTotal
 });
