@@ -259,12 +259,12 @@ function toggleSidebar(){
   document.getElementById('sidebar-overlay').classList.toggle('show');
 }
 const TITLES = {
-  dashboard:"Dashboard", mynumbers:"Meus Números", history:"Histórico", account:"Minha Conta",
+  dashboard:"Dashboard", mynumbers:"Meus Números", history:"Histórico", account:"Minha Conta", faq:"Dúvidas",
   'admin-dashboard':"Dashboard Administrativo", 'admin-create':"Criar Pack", 'admin-packs':"Gerenciar Packs",
   'admin-users':"Usuários", 'admin-confirm':"Confirmar Pagamento", 'admin-history':"Histórico Administrativo"
 };
 const RENDERERS = {
-  dashboard:renderDashboard, mynumbers:renderMyNumbers, history:renderHistory, account:renderAccount,
+  dashboard:renderDashboard, mynumbers:renderMyNumbers, history:renderHistory, account:renderAccount, faq:renderFaq,
   'admin-dashboard':renderAdminDashboard, 'admin-create':renderAdminCreate, 'admin-packs':renderAdminPacks,
   'admin-users':renderAdminUsers, 'admin-confirm':renderAdminConfirm, 'admin-history':renderAdminHistory
 };
@@ -281,6 +281,65 @@ function nav(view){
   document.getElementById('sidebar-overlay').classList.remove('show');
   renderView(view);
 }
+/* ---------- USER: Dúvidas (FAQ) ---------- */
+const FAQ_ITEMS = [
+  {
+    q: 'Como são realizados os sorteios?',
+    a: `Cada pack tem uma quantidade fixa de números. Quando todos os números de um pack são vendidos, o sorteio é realizado e um número vencedor é sorteado de forma aleatória entre os números vendidos daquele pack. O resultado é registrado no sistema e o vencedor é contatado diretamente pelo WhatsApp.`
+  },
+  {
+    q: 'Como funciona a venda dos números?',
+    a: `Cada pack possui um preço fixo por número, calculado com base na quantidade total disponível. Você escolhe a quantidade de números que deseja comprar, confirma via WhatsApp e, após a confirmação do pagamento via PIX pelo administrador, os números são gerados automaticamente e vinculados à sua conta — você pode acompanhá-los a qualquer momento em "Meus Números".`
+  },
+  {
+    q: 'Meu cadastro e meus dados estão seguros?',
+    a: `Sim. Seus dados de cadastro (nome, e-mail e WhatsApp) ficam armazenados de forma segura e são usados apenas para identificar suas compras e para contato em caso de vitória. Não compartilhamos suas informações com terceiros. O acesso às informações administrativas é restrito apenas à administração da plataforma.`
+  },
+  {
+    q: 'Como recebo o código do prêmio?',
+    a: `O código de resgate de cada pack é confidencial e nunca fica visível para os participantes durante as vendas. Assim que o sorteio é realizado, o código é enviado automaticamente pelo administrador ao vencedor, junto com o número sorteado, por meio de contato direto pelo WhatsApp.`
+  },
+  {
+    q: 'Como é feita a entrega do prêmio?',
+    a: `Após o sorteio, o administrador entra em contato com o vencedor pelo WhatsApp para combinar os detalhes da entrega do prêmio (Gold Package) e repassar o código de resgate. Guarde seus dados de contato sempre atualizados em "Minha Conta" para não perder esse contato.`
+  },
+  {
+    q: 'Ainda tenho dúvidas, como falar com a administração?',
+    a: `Você pode conversar diretamente com o administrador clicando em "Conversar com Admin" no menu, ou acompanhar novidades e avisos oficiais pelo "Canal Oficial WhatsApp".`
+  }
+];
+function renderFaq(){
+  const el = document.getElementById('content');
+  el.innerHTML = `
+    <div class="section-head">
+      <h3>Dúvidas frequentes</h3>
+      <div class="sub">Tudo o que você precisa saber sobre sorteios, compras, segurança e prêmios</div>
+    </div>
+    <div class="hist-list">
+      ${FAQ_ITEMS.map((f, idx)=>`
+        <div class="hist-item" id="faq-${idx}">
+          <div class="hist-head" onclick="toggleFaq(${idx})">
+            <div class="hist-main">
+              <div class="hist-user">${f.q}</div>
+            </div>
+            <div class="hist-chevron">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          <div class="hist-details">
+            <div class="hist-details-in">
+              <div style="font-size:13px;color:var(--muted);line-height:1.7;">${f.a}</div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+function toggleFaq(idx){
+  document.getElementById('faq-'+idx).classList.toggle('open');
+}
+
 function openWhats(){
   const u = state.currentUser;
   const msg = `Olá! Sou ${u.name} e gostaria de falar com o administrador do SO2 Rei dos Golds.`;
@@ -1037,5 +1096,5 @@ Object.assign(window, {
   deletePack, deleteUser, doDeletePack, doDeleteUser, doLogin, doLogout, doRegister,
   drawWinner, editPackQty, filterUsers, nav, openBuyModal, openWhats, openWhatsChannel, saveAccount,
   saveEditPack, sendWinnerMessage, showLogin, showRegister, toast, toggleBlock,
-  toggleHistory, togglePackStatus, toggleSidebar, toggleUser, updateTotal
+  toggleHistory, togglePackStatus, toggleSidebar, toggleUser, updateTotal, toggleFaq
 });
