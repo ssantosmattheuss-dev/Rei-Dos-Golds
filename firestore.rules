@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Perfis de usuário (nome, whatsapp, e-mail, role, bloqueado)
+    match /users/{uid} {
+      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == uid;
+      allow update: if isSignedIn() && (
+        (request.auth.uid == uid &&
+          !request.resource.data.diff(resource.data).changedKeys().hasAny(['role','blocked'])) ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Dados públicos dos packs (o que o usuário comum vê: tipo, quantidade, preço por número, status)
+    match /packs/{packId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Dados privados dos packs (custo, código de resgate, vencedor) — só o admin acessa
+    match /packsPrivate/{packId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Compras confirmadas (números gerados)
+    match /purchases/{purchaseId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Contador interno usado para gerar o código sequencial do pack (#000001, #000002...)
+    match /counters/{counterId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
