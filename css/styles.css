@@ -72,15 +72,20 @@
     background:#0a0a0a;color:var(--white);font-size:14px;outline:none;transition:.2s;
   }
   .field input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(244,196,48,.12);}
-  .field input[type="date"],
-  .field input[type="time"],
-  .field input[type="datetime-local"]{
-    color-scheme:dark;
-    min-height:46px;
-    padding:10px 14px;
-    line-height:normal;
-    box-sizing:border-box;
+  .dt-wrap{
+    border-radius:12px;border:1px solid var(--border);background:#0a0a0a;
+    overflow:hidden;transition:.2s;
   }
+  .dt-wrap:focus-within{border-color:var(--gold);box-shadow:0 0 0 3px rgba(244,196,48,.12);}
+  .dt-wrap input[type="date"],
+  .dt-wrap input[type="time"],
+  .dt-wrap input[type="datetime-local"]{
+    display:block;width:100%;box-sizing:border-box;
+    border:none;background:transparent;color:var(--white);
+    font-size:14px;padding:12px 14px;outline:none;
+    color-scheme:dark;min-height:46px;
+  }
+  .dt-wrap input:focus{outline:none;box-shadow:none;}
   .btn-gold{
     width:100%;padding:13px;border:none;border-radius:12px;cursor:pointer;
     background:linear-gradient(135deg,var(--gold),var(--gold-dark));
@@ -319,7 +324,7 @@
     .auth-title{font-size:19px;}
     .form-grid{grid-template-columns:1fr;}
     .search-bar{max-width:100%;}
-    .qty-row input, .field input, .field select{font-size:16px;} /* evita zoom automático no iOS */
+    .qty-row input, .field input, .field select, .dt-wrap input{font-size:16px;} /* evita zoom automático no iOS */
   }
 
   @media(max-width:380px){
