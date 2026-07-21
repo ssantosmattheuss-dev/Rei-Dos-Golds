@@ -29,21 +29,22 @@ const db = getFirestore(fbApp);
 const ADMIN_WHATSAPP = "5511999999999"; // <-- troque pelo número real do administrador
 const ADMIN_EMAIL = "admin@so2.com";    // a primeira conta cadastrada com este e-mail vira admin
 
-// Custo real de cada pack (o que você paga para comprar o gold).
-// Só o administrador enxerga esse valor. Ajuste aqui se o custo mudar.
-const PACK_COSTS = {
-  100:  7.99,
-  300:  23.97,
-  500:  33.99,
-  3000: 129.99,
-  6000: 259.98,
-  9000: 389.97
-};
-const PACK_TYPES = Object.keys(PACK_COSTS).map(Number);
+// Tipos de pack (nome, custo) agora ficam no Firestore (coleção packTypes) e podem ser
+// criados/editados/excluídos pelo admin na aba "Tipos de Pack". Esta lista só é usada
+// para popular a coleção automaticamente na primeira vez que o app roda (se estiver vazia).
+const DEFAULT_PACK_TYPES = [
+  { name: '100 Gold Package',  cost: 7.99   },
+  { name: '300 Gold Package',  cost: 23.97  },
+  { name: '500 Gold Package',  cost: 33.99  },
+  { name: '3000 Gold Package', cost: 129.99 },
+  { name: '6000 Gold Package', cost: 259.98 },
+  { name: '9000 Gold Package', cost: 389.97 }
+];
 
 let state = {
   currentUser: null,   // {uid, id, name, whatsapp, email, role, blocked}
   packs: [],           // admin: campos públicos + privados mesclados. usuário: só públicos.
+  packTypes: [],        // catálogo de tipos de pack (nome + custo), só admin usa
   purchases: [],
   usersList: [],        // só populado para admin
   pendingBuy: null,
@@ -52,6 +53,7 @@ let state = {
 let publicPacksRaw = [];
 let privatePacksMap = {};
 let unsubscribers = [];
+let packTypesSeeded = false;
 function clearListeners(){ unsubscribers.forEach(u=>{ try{u();}catch(e){} }); unsubscribers = []; }
 
 /* ---------- helpers ---------- */
@@ -67,6 +69,11 @@ function packSponsorValue(pack){
   return packGrossProfit(pack) * (pct/100);
 }
 function packProfit(pack){ return packGrossProfit(pack) - packSponsorValue(pack); }
+function packDisplayName(pack){
+  if(pack.typeName) return pack.typeName;
+  if(pack.type!=null) return `${pack.type.toLocaleString('pt-BR')} Gold Package`;
+  return 'Pack';
+}
 function soldCount(pack){ return (pack.sold||[]).length; }
 function availableCount(pack){ return pack.totalNumbers - soldCount(pack); }
 function fmtDateTime(iso){
@@ -223,6 +230,14 @@ function mergePacks(){
   state.packs = publicPacksRaw.map(p => ({...p, ...(privatePacksMap[p.id]||{})}));
   renderView(state.currentView);
 }
+async function seedDefaultPackTypes(){
+  try{
+    for(let i=0;i<DEFAULT_PACK_TYPES.length;i++){
+      const t = DEFAULT_PACK_TYPES[i];
+      await setDoc(doc(collection(db,'packTypes')), { name:t.name, cost:t.cost, order:i, createdAt: serverTimestamp() });
+    }
+  }catch(e){ console.error('seed packTypes', e); }
+}
 
 function subscribeAll(){
   publicPacksRaw = []; privatePacksMap = {};
@@ -251,6 +266,16 @@ function subscribeAll(){
       renderView(state.currentView);
     }, (e)=>console.error('users listener', e));
     unsubscribers.push(unsubUsers);
+
+    const unsubTypes = onSnapshot(collection(db,'packTypes'), (snap)=>{
+      state.packTypes = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(a.order??0)-(b.order??0));
+      if(!packTypesSeeded && snap.empty){
+        packTypesSeeded = true;
+        seedDefaultPackTypes();
+      }
+      renderView(state.currentView);
+    }, (e)=>console.error('packTypes listener', e));
+    unsubscribers.push(unsubTypes);
   } else {
     const unsubMine = onSnapshot(query(collection(db,'purchases'), where('userId','==',state.currentUser.uid)), (snap)=>{
       state.purchases = snap.docs.map(d=>({id:d.id, ...d.data()}));
@@ -268,12 +293,12 @@ function toggleSidebar(){
 }
 const TITLES = {
   dashboard:"Dashboard", mynumbers:"Meus Números", history:"Histórico", account:"Minha Conta", faq:"Dúvidas",
-  'admin-dashboard':"Dashboard Administrativo", 'admin-create':"Criar Pack", 'admin-packs':"Gerenciar Packs",
+  'admin-dashboard':"Dashboard Administrativo", 'admin-create':"Criar Pack", 'admin-types':"Tipos de Pack", 'admin-packs':"Gerenciar Packs",
   'admin-users':"Usuários", 'admin-confirm':"Confirmar Pagamento", 'admin-history':"Histórico Administrativo"
 };
 const RENDERERS = {
   dashboard:renderDashboard, mynumbers:renderMyNumbers, history:renderHistory, account:renderAccount, faq:renderFaq,
-  'admin-dashboard':renderAdminDashboard, 'admin-create':renderAdminCreate, 'admin-packs':renderAdminPacks,
+  'admin-dashboard':renderAdminDashboard, 'admin-create':renderAdminCreate, 'admin-types':renderAdminTypes, 'admin-packs':renderAdminPacks,
   'admin-users':renderAdminUsers, 'admin-confirm':renderAdminConfirm, 'admin-history':renderAdminHistory
 };
 function renderView(view){
@@ -385,7 +410,7 @@ function packCardHTML(p){
       <span class="status-badge ${badge.cls}">${badge.label}</span>
       <div class="pack-icon">${ICON_GOLD}</div>
       <div class="pack-num">PACK #${p.code}</div>
-      <div class="pack-name">${p.type.toLocaleString('pt-BR')} Gold Package</div>
+      <div class="pack-name">${packDisplayName(p)}</div>
       <div class="pack-price">Valor por número<br><b>${fmtBRL(pricePerNumber(p))}</b></div>
       ${(sch.start || sch.end) ? `
       <div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;">
@@ -401,7 +426,7 @@ function openBuyModal(packId){
   const p = state.packs.find(x=>x.id===packId);
   if(!p) return;
   state.pendingBuy = p;
-  document.getElementById('buy-title').textContent = `Pack #${p.code} · ${p.type.toLocaleString('pt-BR')} Gold`;
+  document.getElementById('buy-title').textContent = `Pack #${p.code} · ${packDisplayName(p)}`;
   document.getElementById('buy-sub').textContent = `Disponível: ${availableCount(p)} números · ${fmtBRL(pricePerNumber(p))} cada`;
   document.getElementById('buy-qty').value = 1;
   document.getElementById('buy-qty').max = availableCount(p);
@@ -441,7 +466,7 @@ function confirmBuy(){
 Nome: ${u.name}
 WhatsApp: ${u.whatsapp}
 E-mail: ${u.email}
-Pack: #${p.code} - ${p.type.toLocaleString('pt-BR')} Gold Package
+Pack: #${p.code} - ${packDisplayName(p)}
 Quantidade de números: ${qty}
 Valor total: ${fmtBRL(total)}
 
@@ -466,7 +491,7 @@ function renderMyNumbers(){
         <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
           <div>
             <div class="pack-num">PACK #${pack.code}</div>
-            <div class="pack-name" style="font-size:15px;">${pack.type.toLocaleString('pt-BR')} Gold Package</div>
+            <div class="pack-name" style="font-size:15px;">${packDisplayName(pack)}</div>
           </div>
           <div style="text-align:right;">
             <div style="font-size:11px;color:var(--muted);">Números adquiridos</div>
@@ -495,7 +520,7 @@ function renderHistory(){
           const pack = state.packs.find(p=>p.id===pu.packId) || {code:'——', type:0, status:'closed'};
           return `<tr>
             <td>#${pack.code}</td>
-            <td>${pack.type.toLocaleString('pt-BR')} Gold Package</td>
+            <td>${packDisplayName(pack)}</td>
             <td>${fmtBRL(pu.amount)}</td>
             <td>${pu.date}</td>
             <td><span class="badge-role ${pack.status==='open'?'badge-active':'badge-blocked'}">${pack.status==='open'?'Em andamento':'Encerrado'}</span></td>
@@ -601,19 +626,23 @@ function renderAdminDashboard(){
 
 function renderAdminCreate(){
   const el = document.getElementById('content');
+  if(state.packTypes.length===0){
+    el.innerHTML = emptyState("Nenhum tipo de pack cadastrado", "Cadastre um tipo de pack (nome e custo) em \"Tipos de Pack\" antes de criar um pack.");
+    return;
+  }
   el.innerHTML = `
     <div class="card" style="max-width:480px;">
       <div class="field">
         <label>Tipo do Pack</label>
         <select id="np-type" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:#0e0c0a;color:#fff;font-size:16px;">
-          ${PACK_TYPES.map(t=>`<option value="${t}">${t.toLocaleString('pt-BR')} Gold Package · custo ${fmtBRL(PACK_COSTS[t])}</option>`).join('')}
+          ${state.packTypes.map(t=>`<option value="${t.id}">${t.name} · custo ${fmtBRL(t.cost)}</option>`).join('')}
         </select>
       </div>
       <div class="field"><label>Quantidade total de números</label><input id="np-qty" type="number" min="1" value="100"></div>
       <div class="field">
         <label>Porcentagem de patrocinador (opcional)</label>
         <input id="np-sponsor" type="number" min="0" step="0.1" value="0" placeholder="Ex: 10 para 10%">
-        <div style="font-size:11px;color:var(--muted);margin-top:5px;">Percentual somado ao custo do pack antes de calcular o valor a arrecadar (ex: repasse a um patrocinador/divulgador).</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:5px;">Percentual descontado do lucro do pack, não do custo (ex: repasse a um patrocinador/divulgador).</div>
       </div>
       <div class="field">
         <label>Programar início (opcional)</label>
@@ -647,8 +676,9 @@ function renderAdminCreate(){
   `;
   let totalTouched = false;
   const recompute = ()=>{
-    const type = parseInt(document.getElementById('np-type').value);
-    const cost = PACK_COSTS[type];
+    const typeId = document.getElementById('np-type').value;
+    const packType = state.packTypes.find(t=>t.id===typeId);
+    const cost = packType ? packType.cost : 0;
     const sponsorPct = Math.max(0, parseFloat(document.getElementById('np-sponsor').value||0));
     const qty = Math.max(1, parseInt(document.getElementById('np-qty').value||1));
     const totalInput = document.getElementById('np-total-manual');
@@ -681,8 +711,10 @@ async function nextPackCode(){
   return String(n).padStart(6,'0');
 }
 async function createPack(){
-  const type = parseInt(document.getElementById('np-type').value);
-  const cost = PACK_COSTS[type];
+  const typeId = document.getElementById('np-type').value;
+  const packType = state.packTypes.find(t=>t.id===typeId);
+  if(!packType){ toast('Selecione um tipo de pack válido.'); return; }
+  const cost = packType.cost;
   const sponsorPercent = Math.max(0, parseFloat(document.getElementById('np-sponsor').value||0));
   const qty = Math.max(1, parseInt(document.getElementById('np-qty').value||1));
   const totalToRaise = parseFloat(document.getElementById('np-total-manual').value || (cost*2));
@@ -700,7 +732,7 @@ async function createPack(){
   try{
     const code = await nextPackCode();
     await setDoc(doc(db,'packs',code), {
-      code, type, totalNumbers:qty, sold:[], status:'open', pricePerNumber, startsAt, endsAt, createdAt: serverTimestamp()
+      code, typeId, typeName:packType.name, totalNumbers:qty, sold:[], status:'open', pricePerNumber, startsAt, endsAt, createdAt: serverTimestamp()
     });
     await setDoc(doc(db,'packsPrivate',code), { cost, sponsorPercent, totalToRaise, redeemCode, winner:null });
     toast(`Pack #${code} criado com sucesso!`);
@@ -709,6 +741,94 @@ async function createPack(){
     console.error(e);
     toast('Erro ao criar pack. Verifique as regras do Firestore.');
   }
+}
+
+/* ---------- ADMIN: Tipos de Pack (catálogo: nome + custo) ---------- */
+function renderAdminTypes(){
+  const el = document.getElementById('content');
+  const types = state.packTypes;
+  el.innerHTML = `
+    <div class="section-head">
+      <h3>Tipos de Pack</h3>
+      <div class="sub">Cadastre os tipos de pack disponíveis (nome e custo) usados ao criar novos packs</div>
+    </div>
+    <div class="card" style="max-width:480px;margin-bottom:20px;">
+      <div class="field"><label>Nome do pack</label><input id="pt-name" type="text" placeholder="Ex: 100 Gold Package"></div>
+      <div class="field"><label>Custo (R$)</label><input id="pt-cost" type="number" min="0" step="0.01" placeholder="Ex: 7.99"></div>
+      <button class="btn-gold" onclick="createPackType()">Adicionar Tipo de Pack</button>
+    </div>
+    ${types.length===0 ? emptyState("Nenhum tipo de pack cadastrado", "Adicione o primeiro tipo de pack acima.") : `
+    <div class="grid pack-grid">
+      ${types.map(t=>`
+        <div class="pack-card">
+          <div class="pack-icon">${ICON_GOLD}</div>
+          <div class="pack-name">${t.name}</div>
+          <div class="pack-price">Custo: <b>${fmtBRL(t.cost)}</b></div>
+          <div class="btn-row" style="margin-top:14px;">
+            <button class="btn-small" onclick="editPackType('${t.id}')">Editar</button>
+            <button class="btn-small danger" onclick="deletePackType('${t.id}')">Excluir</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>`}
+  `;
+}
+async function createPackType(){
+  const name = document.getElementById('pt-name').value.trim();
+  const cost = parseFloat(document.getElementById('pt-cost').value);
+  if(!name){ toast('Informe o nome do pack.'); return; }
+  if(!(cost > 0)){ toast('Informe um custo válido.'); return; }
+  try{
+    const order = state.packTypes.length ? Math.max(...state.packTypes.map(t=>t.order??0))+1 : 0;
+    await setDoc(doc(collection(db,'packTypes')), { name, cost, order, createdAt: serverTimestamp() });
+    toast('Tipo de pack adicionado!');
+  }catch(e){
+    console.error(e);
+    toast('Erro ao adicionar tipo de pack.');
+  }
+}
+function editPackType(id){
+  const t = state.packTypes.find(x=>x.id===id);
+  if(!t) return;
+  openGenericModal(`
+    <h3>Editar Tipo de Pack</h3>
+    <div class="field"><label>Nome do pack</label><input id="pt-edit-name" type="text" value="${t.name}"></div>
+    <div class="field"><label>Custo (R$)</label><input id="pt-edit-cost" type="number" min="0" step="0.01" value="${t.cost}"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="closeModal('modal-generic')">Cancelar</button>
+      <button class="btn-gold" style="flex:1;" onclick="savePackType('${t.id}')">Salvar</button>
+    </div>
+  `);
+}
+async function savePackType(id){
+  const name = document.getElementById('pt-edit-name').value.trim();
+  const cost = parseFloat(document.getElementById('pt-edit-cost').value);
+  if(!name){ toast('Informe o nome do pack.'); return; }
+  if(!(cost > 0)){ toast('Informe um custo válido.'); return; }
+  try{
+    await updateDoc(doc(db,'packTypes',id), { name, cost });
+    closeModal('modal-generic');
+    toast('Tipo de pack atualizado.');
+  }catch(e){ toast('Erro ao atualizar tipo de pack.'); }
+}
+function deletePackType(id){
+  const t = state.packTypes.find(x=>x.id===id);
+  if(!t) return;
+  openGenericModal(`
+    <h3>Excluir "${t.name}"?</h3>
+    <div class="m-sub">Isso não altera packs já criados com este tipo — só remove a opção para novos packs.</div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="closeModal('modal-generic')">Cancelar</button>
+      <button class="btn-small danger" style="flex:1;" onclick="doDeletePackType('${t.id}')">Sim, excluir</button>
+    </div>
+  `);
+}
+async function doDeletePackType(id){
+  try{
+    await deleteDoc(doc(db,'packTypes',id));
+    closeModal('modal-generic');
+    toast('Tipo de pack excluído.');
+  }catch(e){ toast('Erro ao excluir tipo de pack.'); }
 }
 
 function renderAdminPacks(){
@@ -726,7 +846,7 @@ function renderAdminPacks(){
           <span class="status-badge ${badge.cls}">${badge.label}</span>
           <div class="pack-icon">${ICON_GOLD}</div>
           <div class="pack-num">PACK #${p.code}</div>
-          <div class="pack-name">${p.type.toLocaleString('pt-BR')} Gold Package</div>
+          <div class="pack-name">${packDisplayName(p)}</div>
           <div class="pack-price">
             Vendidos: <b>${soldCount(p)}/${p.totalNumbers}</b><br>
             Preço/número: <b>${fmtBRL(pricePerNumber(p))}</b><br>
@@ -795,7 +915,7 @@ function editPackQty(id){
   if(!p) return;
   openGenericModal(`
     <h3>Editar Pack #${p.code}</h3>
-    <div class="m-sub">${p.type.toLocaleString('pt-BR')} Gold Package</div>
+    <div class="m-sub">${packDisplayName(p)}</div>
     <div class="field"><label>Quantidade total de números</label><input id="edit-qty" type="number" min="${soldCount(p)}" value="${p.totalNumbers}"></div>
     <div class="field">
       <label>Porcentagem de patrocinador (opcional)</label>
@@ -949,7 +1069,7 @@ function renderAdminConfirm(){
       <div class="field">
         <label>Pack</label>
         <select id="cf-pack" style="width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:#0e0c0a;color:#fff;font-size:16px;">
-          ${openPacks.map(p=>`<option value="${p.id}">#${p.code} · ${p.type.toLocaleString('pt-BR')} Gold (${availableCount(p)} disp.)</option>`).join('')}
+          ${openPacks.map(p=>`<option value="${p.id}">#${p.code} · ${packDisplayName(p)} (${availableCount(p)} disp.)</option>`).join('')}
         </select>
       </div>
       <div class="field">
@@ -1006,7 +1126,7 @@ function showConfirmResult(packId, userId, numbers){
   const msg =
 `Olá ${user.name}! Seu pagamento foi confirmado. 🎉
 
-Pack: #${pack.code} - ${pack.type.toLocaleString('pt-BR')} Gold Package
+Pack: #${pack.code} - ${packDisplayName(pack)}
 Quantidade: ${numbers.length} números
 Seus números da sorte:
 ${numbers.join(', ')}
@@ -1057,7 +1177,7 @@ function renderAdminHistory(){
           </div>
           <div class="hist-details">
             <div class="hist-details-in">
-              <div class="hist-row"><span class="k">Pack</span><span class="v">#${pack.code} · ${pack.type.toLocaleString('pt-BR')} Gold Package</span></div>
+              <div class="hist-row"><span class="k">Pack</span><span class="v">#${pack.code} · ${packDisplayName(pack)}</span></div>
               <div class="hist-row"><span class="k">Usuário</span><span class="v">${user ? user.name : '—'}</span></div>
               <div class="hist-row"><span class="k">WhatsApp</span><span class="v">${user ? user.whatsapp : '—'}</span></div>
               <div class="hist-row"><span class="k">E-mail</span><span class="v">${user ? user.email : '—'}</span></div>
@@ -1123,7 +1243,7 @@ function sendWinnerMessage(id){
   const msg =
 `Parabéns ${user.name}! 🏆🎉
 
-O sorteio do Pack #${p.code} - ${p.type.toLocaleString('pt-BR')} Gold Package foi realizado!
+O sorteio do Pack #${p.code} - ${packDisplayName(p)} foi realizado!
 
 Número sorteado: ${p.winner.number}
 ${p.redeemCode ? `Código de resgate: ${p.redeemCode}\n` : ''}
@@ -1140,8 +1260,9 @@ function openGenericModal(html){
 /* ---------- expose functions used by inline HTML event handlers ---------- */
 Object.assign(window, {
   changeQty, closeModal, confirmBuy, confirmPayment, contactWinner, createPack,
-  deletePack, deleteUser, doDeletePack, doDeleteUser, doLogin, doLogout, doRegister,
-  drawWinner, editPackQty, filterUsers, nav, openBuyModal, openWhats, openWhatsChannel, saveAccount,
-  saveEditPack, sendWinnerMessage, showLogin, showRegister, toast, toggleBlock,
+  createPackType, deletePack, deletePackType, deleteUser, doDeletePack, doDeletePackType,
+  doDeleteUser, doLogin, doLogout, doRegister, drawWinner, editPackQty, editPackType,
+  filterUsers, nav, openBuyModal, openWhats, openWhatsChannel, saveAccount,
+  savePackType, saveEditPack, sendWinnerMessage, showLogin, showRegister, toast, toggleBlock,
   toggleHistory, togglePackStatus, toggleSidebar, toggleUser, updateTotal, toggleFaq
 });
