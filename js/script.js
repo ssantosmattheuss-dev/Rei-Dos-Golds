@@ -57,15 +57,16 @@ function clearListeners(){ unsubscribers.forEach(u=>{ try{u();}catch(e){} }); un
 /* ---------- helpers ---------- */
 function fmtBRL(v){ return (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
 function pricePerNumber(pack){ return pack.pricePerNumber || 0; }
-function packCostWithSponsor(pack){
-  if(pack.costWithSponsor!=null) return pack.costWithSponsor;
-  return pack.cost!=null ? pack.cost : 0;
-}
 function packRevenueTotal(pack){
   if(pack.totalToRaise!=null) return pack.totalToRaise;
   return pack.cost!=null ? pack.cost*2 : (pack.pricePerNumber*pack.totalNumbers);
 }
-function packProfit(pack){ return packRevenueTotal(pack) - packCostWithSponsor(pack); }
+function packGrossProfit(pack){ return packRevenueTotal(pack) - (pack.cost||0); }
+function packSponsorValue(pack){
+  const pct = pack.sponsorPercent || 0;
+  return packGrossProfit(pack) * (pct/100);
+}
+function packProfit(pack){ return packGrossProfit(pack) - packSponsorValue(pack); }
 function soldCount(pack){ return (pack.sold||[]).length; }
 function availableCount(pack){ return pack.totalNumbers - soldCount(pack); }
 function fmtDateTime(iso){
@@ -567,7 +568,7 @@ function renderAdminDashboard(){
   const closed = state.packs.filter(p=>p.status==='closed').length;
   const confirmedPayments = state.purchases.length;
   const arrecadado = state.purchases.reduce((s,pu)=>s+pu.amount,0);
-  const custoTotal = state.packs.reduce((s,p)=>s+packCostWithSponsor(p),0);
+  const custoTotal = state.packs.reduce((s,p)=>s+(p.cost||0),0);
   const lucroAlvo = state.packs.reduce((s,p)=>s+packProfit(p),0);
   el.innerHTML = `
     <div class="grid stat-grid">
@@ -616,11 +617,11 @@ function renderAdminCreate(){
       </div>
       <div class="field">
         <label>Programar início (opcional)</label>
-        <input id="np-start" type="datetime-local">
+        <div class="dt-wrap"><input id="np-start" type="datetime-local"></div>
       </div>
       <div class="field">
         <label>Programar término (opcional)</label>
-        <input id="np-end" type="datetime-local">
+        <div class="dt-wrap"><input id="np-end" type="datetime-local"></div>
         <div style="font-size:11px;color:var(--muted);margin-top:5px;">Deixe em branco para o pack ficar disponível imediatamente e sem prazo para encerrar. Fora do período programado, a compra fica bloqueada automaticamente para os usuários.</div>
       </div>
       <div class="field">
@@ -634,7 +635,7 @@ function renderAdminCreate(){
         <div class="field" style="margin:10px 0 6px;">
           <label style="font-size:12.5px;color:var(--muted);">Valor arrecadado (editável)</label>
           <input id="np-total-manual" type="number" min="0" step="0.01">
-          <div style="font-size:11px;color:var(--muted);margin-top:5px;">Sugerido automaticamente (custo + patrocinador × 2), mas você pode digitar outro valor.</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:5px;">Sugerido automaticamente (custo × 2), mas você pode digitar outro valor.</div>
         </div>
         <div id="np-sponsor-row" style="display:none;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;"><span>Valor do patrocinador</span><b id="np-sponsor-value" style="color:var(--gold);">—</b></div>
         <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;"><span>Lucro</span><b id="np-profit" style="color:var(--green);">—</b></div>
@@ -649,17 +650,17 @@ function renderAdminCreate(){
     const type = parseInt(document.getElementById('np-type').value);
     const cost = PACK_COSTS[type];
     const sponsorPct = Math.max(0, parseFloat(document.getElementById('np-sponsor').value||0));
-    const costWithSponsor = cost * (1 + sponsorPct/100);
-    const sponsorValue = costWithSponsor - cost;
     const qty = Math.max(1, parseInt(document.getElementById('np-qty').value||1));
     const totalInput = document.getElementById('np-total-manual');
-    if(!totalTouched){ totalInput.value = (costWithSponsor*2).toFixed(2); }
-    const total = parseFloat(totalInput.value||(costWithSponsor*2));
+    if(!totalTouched){ totalInput.value = (cost*2).toFixed(2); }
+    const total = parseFloat(totalInput.value||(cost*2));
+    const grossProfit = total - cost;
+    const sponsorValue = grossProfit * (sponsorPct/100);
     document.getElementById('np-cost').textContent = fmtBRL(cost);
     const sponsorRow = document.getElementById('np-sponsor-row');
     sponsorRow.style.display = sponsorPct > 0 ? 'flex' : 'none';
     document.getElementById('np-sponsor-value').textContent = fmtBRL(sponsorValue);
-    document.getElementById('np-profit').textContent = fmtBRL(total - costWithSponsor);
+    document.getElementById('np-profit').textContent = fmtBRL(grossProfit - sponsorValue);
     document.getElementById('np-unit').textContent = fmtBRL(total/qty);
   };
   document.getElementById('np-type').addEventListener('change', recompute);
@@ -683,9 +684,8 @@ async function createPack(){
   const type = parseInt(document.getElementById('np-type').value);
   const cost = PACK_COSTS[type];
   const sponsorPercent = Math.max(0, parseFloat(document.getElementById('np-sponsor').value||0));
-  const costWithSponsor = cost * (1 + sponsorPercent/100);
   const qty = Math.max(1, parseInt(document.getElementById('np-qty').value||1));
-  const totalToRaise = parseFloat(document.getElementById('np-total-manual').value || (costWithSponsor*2));
+  const totalToRaise = parseFloat(document.getElementById('np-total-manual').value || (cost*2));
   if(!(totalToRaise > 0)){ toast('Informe um valor total a arrecadar válido.'); return; }
   const redeemCode = document.getElementById('np-code').value.trim() || null;
   const startVal = document.getElementById('np-start').value;
@@ -702,7 +702,7 @@ async function createPack(){
     await setDoc(doc(db,'packs',code), {
       code, type, totalNumbers:qty, sold:[], status:'open', pricePerNumber, startsAt, endsAt, createdAt: serverTimestamp()
     });
-    await setDoc(doc(db,'packsPrivate',code), { cost, sponsorPercent, costWithSponsor, totalToRaise, redeemCode, winner:null });
+    await setDoc(doc(db,'packsPrivate',code), { cost, sponsorPercent, totalToRaise, redeemCode, winner:null });
     toast(`Pack #${code} criado com sucesso!`);
     nav('admin-packs');
   }catch(e){
@@ -732,7 +732,7 @@ function renderAdminPacks(){
             Preço/número: <b>${fmtBRL(pricePerNumber(p))}</b><br>
             <span style="color:#655c4b;">Valor custo: ${fmtBRL(p.cost)}</span><br>
             <span style="color:#655c4b;">Valor arrecadado: ${fmtBRL(packRevenueTotal(p))}</span><br>
-            ${p.sponsorPercent ? `<span style="color:#655c4b;">Valor do patrocinador: <span style="color:var(--gold);">${fmtBRL(packCostWithSponsor(p) - p.cost)}</span></span><br>` : ''}
+            ${p.sponsorPercent ? `<span style="color:#655c4b;">Valor do patrocinador: <span style="color:var(--gold);">${fmtBRL(packSponsorValue(p))}</span></span><br>` : ''}
             <span style="color:#655c4b;">Lucro: <span style="color:var(--green);">${fmtBRL(packProfit(p))}</span></span><br>
             <span style="color:#655c4b;">Código de resgate: ${p.redeemCode ? `<span style="color:var(--gold);font-weight:700;">${p.redeemCode}</span>` : '<span style="color:var(--red);">não definido</span>'}</span>
           </div>
@@ -808,11 +808,11 @@ function editPackQty(id){
     </div>
     <div class="field">
       <label>Programar início (opcional)</label>
-      <input id="edit-start" type="datetime-local" value="${toDatetimeLocalValue(p.startsAt)}">
+      <div class="dt-wrap"><input id="edit-start" type="datetime-local" value="${toDatetimeLocalValue(p.startsAt)}"></div>
     </div>
     <div class="field">
       <label>Programar término (opcional)</label>
-      <input id="edit-end" type="datetime-local" value="${toDatetimeLocalValue(p.endsAt)}">
+      <div class="dt-wrap"><input id="edit-end" type="datetime-local" value="${toDatetimeLocalValue(p.endsAt)}"></div>
       <div style="font-size:11px;color:var(--muted);margin-top:5px;">Deixe em branco para não ter agendamento. Fora do período, a compra fica bloqueada automaticamente.</div>
     </div>
     <div class="field">
@@ -832,8 +832,7 @@ async function saveEditPack(id){
   const v = parseInt(document.getElementById('edit-qty').value||p.totalNumbers);
   if(v < soldCount(p)){ toast('Quantidade não pode ser menor que os números já vendidos.'); return; }
   const sponsorPercent = Math.max(0, parseFloat(document.getElementById('edit-sponsor').value||0));
-  const costWithSponsor = p.cost * (1 + sponsorPercent/100);
-  const totalToRaise = parseFloat(document.getElementById('edit-total').value || (costWithSponsor*2));
+  const totalToRaise = parseFloat(document.getElementById('edit-total').value || (p.cost*2));
   if(!(totalToRaise > 0)){ toast('Informe um valor total a arrecadar válido.'); return; }
   const redeemCode = document.getElementById('edit-code').value.trim() || null;
   const startVal = document.getElementById('edit-start').value;
@@ -847,7 +846,7 @@ async function saveEditPack(id){
   const pricePerNumber = totalToRaise/v;
   try{
     await updateDoc(doc(db,'packs',id), { totalNumbers:v, pricePerNumber, startsAt, endsAt });
-    await updateDoc(doc(db,'packsPrivate',id), { redeemCode, sponsorPercent, costWithSponsor, totalToRaise });
+    await updateDoc(doc(db,'packsPrivate',id), { redeemCode, sponsorPercent, totalToRaise });
     closeModal('modal-generic');
     toast('Pack atualizado.');
   }catch(e){ toast('Erro ao atualizar pack.'); }
