@@ -630,15 +630,14 @@ function renderAdminCreate(){
       </div>
       <div class="card" style="background:#0e0c0a;padding:14px;margin:6px 0 16px;">
         <div style="font-size:10px;color:#655c4b;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:10px;">Visível apenas para você (Admin)</div>
-        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;"><span>Custo base do pack</span><b id="np-cost" style="color:#fff;">—</b></div>
-        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;"><span>Custo + patrocinador</span><b id="np-cost-sponsor" style="color:#fff;">—</b></div>
-        <div style="height:1px;background:var(--border);margin:8px 0;"></div>
-        <div class="field" style="margin-bottom:6px;">
-          <label style="font-size:12.5px;color:var(--muted);">Valor total a arrecadar (editável)</label>
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;"><span>Valor custo</span><b id="np-cost" style="color:#fff;">—</b></div>
+        <div class="field" style="margin:10px 0 6px;">
+          <label style="font-size:12.5px;color:var(--muted);">Valor arrecadado (editável)</label>
           <input id="np-total-manual" type="number" min="0" step="0.01">
           <div style="font-size:11px;color:var(--muted);margin-top:5px;">Sugerido automaticamente (custo + patrocinador × 2), mas você pode digitar outro valor.</div>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;"><span>Lucro estimado</span><b id="np-profit" style="color:var(--green);">—</b></div>
+        <div id="np-sponsor-row" style="display:none;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;"><span>Valor do patrocinador</span><b id="np-sponsor-value" style="color:var(--gold);">—</b></div>
+        <div style="height:1px;background:var(--border);margin:8px 0;"></div>
         <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);"><span>Valor por número (visível ao usuário)</span><b id="np-unit" style="color:var(--gold);">—</b></div>
       </div>
       <button class="btn-gold" onclick="createPack()">Criar Pack</button>
@@ -650,13 +649,15 @@ function renderAdminCreate(){
     const cost = PACK_COSTS[type];
     const sponsorPct = Math.max(0, parseFloat(document.getElementById('np-sponsor').value||0));
     const costWithSponsor = cost * (1 + sponsorPct/100);
+    const sponsorValue = costWithSponsor - cost;
     const qty = Math.max(1, parseInt(document.getElementById('np-qty').value||1));
     const totalInput = document.getElementById('np-total-manual');
     if(!totalTouched){ totalInput.value = (costWithSponsor*2).toFixed(2); }
     const total = parseFloat(totalInput.value||(costWithSponsor*2));
     document.getElementById('np-cost').textContent = fmtBRL(cost);
-    document.getElementById('np-cost-sponsor').textContent = fmtBRL(costWithSponsor);
-    document.getElementById('np-profit').textContent = fmtBRL(total - costWithSponsor);
+    const sponsorRow = document.getElementById('np-sponsor-row');
+    sponsorRow.style.display = sponsorPct > 0 ? 'flex' : 'none';
+    document.getElementById('np-sponsor-value').textContent = fmtBRL(sponsorValue);
     document.getElementById('np-unit').textContent = fmtBRL(total/qty);
   };
   document.getElementById('np-type').addEventListener('change', recompute);
@@ -727,8 +728,9 @@ function renderAdminPacks(){
           <div class="pack-price">
             Vendidos: <b>${soldCount(p)}/${p.totalNumbers}</b><br>
             Preço/número: <b>${fmtBRL(pricePerNumber(p))}</b><br>
-            <span style="color:#655c4b;">Custo: ${fmtBRL(p.cost)}${p.sponsorPercent ? ` + ${p.sponsorPercent}% patroc. = ${fmtBRL(packCostWithSponsor(p))}` : ''} · Total a arrecadar: ${fmtBRL(packRevenueTotal(p))}</span><br>
-            <span style="color:#655c4b;">Lucro estimado: <span style="color:var(--green);">${fmtBRL(packProfit(p))}</span></span><br>
+            <span style="color:#655c4b;">Valor custo: ${fmtBRL(p.cost)}</span><br>
+            <span style="color:#655c4b;">Valor arrecadado: ${fmtBRL(packRevenueTotal(p))}</span><br>
+            ${p.sponsorPercent ? `<span style="color:#655c4b;">Valor do patrocinador: <span style="color:var(--gold);">${fmtBRL(packCostWithSponsor(p) - p.cost)}</span></span><br>` : ''}
             <span style="color:#655c4b;">Código de resgate: ${p.redeemCode ? `<span style="color:var(--gold);font-weight:700;">${p.redeemCode}</span>` : '<span style="color:var(--red);">não definido</span>'}</span>
           </div>
           ${(sch.start || sch.end) ? `
