@@ -57,8 +57,15 @@ function clearListeners(){ unsubscribers.forEach(u=>{ try{u();}catch(e){} }); un
 /* ---------- helpers ---------- */
 function fmtBRL(v){ return (v||0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'}); }
 function pricePerNumber(pack){ return pack.pricePerNumber || 0; }
-function packRevenueTotal(pack){ return pack.cost!=null ? pack.cost*2 : (pack.pricePerNumber*pack.totalNumbers); }
-function packProfit(pack){ return pack.cost; }
+function packCostWithSponsor(pack){
+  if(pack.costWithSponsor!=null) return pack.costWithSponsor;
+  return pack.cost!=null ? pack.cost : 0;
+}
+function packRevenueTotal(pack){
+  if(pack.totalToRaise!=null) return pack.totalToRaise;
+  return pack.cost!=null ? pack.cost*2 : (pack.pricePerNumber*pack.totalNumbers);
+}
+function packProfit(pack){ return packRevenueTotal(pack) - packCostWithSponsor(pack); }
 function soldCount(pack){ return (pack.sold||[]).length; }
 function availableCount(pack){ return pack.totalNumbers - soldCount(pack); }
 function fmtDateTime(iso){
@@ -560,8 +567,8 @@ function renderAdminDashboard(){
   const closed = state.packs.filter(p=>p.status==='closed').length;
   const confirmedPayments = state.purchases.length;
   const arrecadado = state.purchases.reduce((s,pu)=>s+pu.amount,0);
-  const custoTotal = state.packs.reduce((s,p)=>s+(p.cost||0),0);
-  const lucroAlvo = custoTotal;
+  const custoTotal = state.packs.reduce((s,p)=>s+packCostWithSponsor(p),0);
+  const lucroAlvo = state.packs.reduce((s,p)=>s+packProfit(p),0);
   el.innerHTML = `
     <div class="grid stat-grid">
       <div class="stat-card"><div class="lbl">Total de usuários</div><div class="val">${totalUsers}</div></div>
@@ -572,7 +579,7 @@ function renderAdminDashboard(){
     <div class="grid stat-grid">
       <div class="stat-card"><div class="lbl">Arrecadado até agora</div><div class="val gold">${fmtBRL(arrecadado)}</div></div>
       <div class="stat-card"><div class="lbl">Custo total dos packs</div><div class="val">${fmtBRL(custoTotal)}</div></div>
-      <div class="stat-card"><div class="lbl">Lucro alvo (100% do custo)</div><div class="val" style="color:var(--green);">${fmtBRL(lucroAlvo)}</div></div>
+      <div class="stat-card"><div class="lbl">Lucro estimado total</div><div class="val" style="color:var(--green);">${fmtBRL(lucroAlvo)}</div></div>
     </div>
     <div class="section-head"><h3>Histórico recente</h3></div>
     ${state.purchases.length===0 ? emptyState("Nenhuma operação ainda", "As confirmações de pagamento aparecerão aqui.") : `
@@ -603,6 +610,11 @@ function renderAdminCreate(){
       </div>
       <div class="field"><label>Quantidade total de números</label><input id="np-qty" type="number" min="1" value="100"></div>
       <div class="field">
+        <label>Porcentagem de patrocinador (opcional)</label>
+        <input id="np-sponsor" type="number" min="0" step="0.1" value="0" placeholder="Ex: 10 para 10%">
+        <div style="font-size:11px;color:var(--muted);margin-top:5px;">Percentual somado ao custo do pack antes de calcular o valor a arrecadar (ex: repasse a um patrocinador/divulgador).</div>
+      </div>
+      <div class="field">
         <label>Programar início (opcional)</label>
         <input id="np-start" type="datetime-local">
       </div>
@@ -618,26 +630,39 @@ function renderAdminCreate(){
       </div>
       <div class="card" style="background:#0e0c0a;padding:14px;margin:6px 0 16px;">
         <div style="font-size:10px;color:#655c4b;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:10px;">Visível apenas para você (Admin)</div>
-        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;"><span>Custo do pack</span><b id="np-cost" style="color:#fff;">—</b></div>
-        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;"><span>Lucro (100% sobre o custo)</span><b id="np-profit" style="color:var(--green);">—</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;"><span>Custo base do pack</span><b id="np-cost" style="color:#fff;">—</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;"><span>Custo + patrocinador</span><b id="np-cost-sponsor" style="color:#fff;">—</b></div>
         <div style="height:1px;background:var(--border);margin:8px 0;"></div>
-        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;"><span>Valor total a arrecadar</span><b id="np-total" style="color:var(--gold);">—</b></div>
+        <div class="field" style="margin-bottom:6px;">
+          <label style="font-size:12.5px;color:var(--muted);">Valor total a arrecadar (editável)</label>
+          <input id="np-total-manual" type="number" min="0" step="0.01">
+          <div style="font-size:11px;color:var(--muted);margin-top:5px;">Sugerido automaticamente (custo + patrocinador × 2), mas você pode digitar outro valor.</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;"><span>Lucro estimado</span><b id="np-profit" style="color:var(--green);">—</b></div>
         <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);"><span>Valor por número (visível ao usuário)</span><b id="np-unit" style="color:var(--gold);">—</b></div>
       </div>
       <button class="btn-gold" onclick="createPack()">Criar Pack</button>
     </div>
   `;
+  let totalTouched = false;
   const recompute = ()=>{
     const type = parseInt(document.getElementById('np-type').value);
     const cost = PACK_COSTS[type];
+    const sponsorPct = Math.max(0, parseFloat(document.getElementById('np-sponsor').value||0));
+    const costWithSponsor = cost * (1 + sponsorPct/100);
     const qty = Math.max(1, parseInt(document.getElementById('np-qty').value||1));
+    const totalInput = document.getElementById('np-total-manual');
+    if(!totalTouched){ totalInput.value = (costWithSponsor*2).toFixed(2); }
+    const total = parseFloat(totalInput.value||(costWithSponsor*2));
     document.getElementById('np-cost').textContent = fmtBRL(cost);
-    document.getElementById('np-profit').textContent = fmtBRL(cost);
-    document.getElementById('np-total').textContent = fmtBRL(cost*2);
-    document.getElementById('np-unit').textContent = fmtBRL((cost*2)/qty);
+    document.getElementById('np-cost-sponsor').textContent = fmtBRL(costWithSponsor);
+    document.getElementById('np-profit').textContent = fmtBRL(total - costWithSponsor);
+    document.getElementById('np-unit').textContent = fmtBRL(total/qty);
   };
   document.getElementById('np-type').addEventListener('change', recompute);
   document.getElementById('np-qty').addEventListener('input', recompute);
+  document.getElementById('np-sponsor').addEventListener('input', recompute);
+  document.getElementById('np-total-manual').addEventListener('input', ()=>{ totalTouched=true; recompute(); });
   recompute();
 }
 
@@ -654,7 +679,11 @@ async function nextPackCode(){
 async function createPack(){
   const type = parseInt(document.getElementById('np-type').value);
   const cost = PACK_COSTS[type];
+  const sponsorPercent = Math.max(0, parseFloat(document.getElementById('np-sponsor').value||0));
+  const costWithSponsor = cost * (1 + sponsorPercent/100);
   const qty = Math.max(1, parseInt(document.getElementById('np-qty').value||1));
+  const totalToRaise = parseFloat(document.getElementById('np-total-manual').value || (costWithSponsor*2));
+  if(!(totalToRaise > 0)){ toast('Informe um valor total a arrecadar válido.'); return; }
   const redeemCode = document.getElementById('np-code').value.trim() || null;
   const startVal = document.getElementById('np-start').value;
   const endVal = document.getElementById('np-end').value;
@@ -664,13 +693,13 @@ async function createPack(){
     toast('O término precisa ser depois do início.');
     return;
   }
-  const pricePerNumber = (cost*2)/qty;
+  const pricePerNumber = totalToRaise/qty;
   try{
     const code = await nextPackCode();
     await setDoc(doc(db,'packs',code), {
       code, type, totalNumbers:qty, sold:[], status:'open', pricePerNumber, startsAt, endsAt, createdAt: serverTimestamp()
     });
-    await setDoc(doc(db,'packsPrivate',code), { cost, redeemCode, winner:null });
+    await setDoc(doc(db,'packsPrivate',code), { cost, sponsorPercent, costWithSponsor, totalToRaise, redeemCode, winner:null });
     toast(`Pack #${code} criado com sucesso!`);
     nav('admin-packs');
   }catch(e){
@@ -698,7 +727,8 @@ function renderAdminPacks(){
           <div class="pack-price">
             Vendidos: <b>${soldCount(p)}/${p.totalNumbers}</b><br>
             Preço/número: <b>${fmtBRL(pricePerNumber(p))}</b><br>
-            <span style="color:#655c4b;">Custo: ${fmtBRL(p.cost)} · Lucro alvo: <span style="color:var(--green);">${fmtBRL(packProfit(p))}</span></span><br>
+            <span style="color:#655c4b;">Custo: ${fmtBRL(p.cost)}${p.sponsorPercent ? ` + ${p.sponsorPercent}% patroc. = ${fmtBRL(packCostWithSponsor(p))}` : ''} · Total a arrecadar: ${fmtBRL(packRevenueTotal(p))}</span><br>
+            <span style="color:#655c4b;">Lucro estimado: <span style="color:var(--green);">${fmtBRL(packProfit(p))}</span></span><br>
             <span style="color:#655c4b;">Código de resgate: ${p.redeemCode ? `<span style="color:var(--gold);font-weight:700;">${p.redeemCode}</span>` : '<span style="color:var(--red);">não definido</span>'}</span>
           </div>
           ${(sch.start || sch.end) ? `
@@ -763,6 +793,15 @@ function editPackQty(id){
     <div class="m-sub">${p.type.toLocaleString('pt-BR')} Gold Package</div>
     <div class="field"><label>Quantidade total de números</label><input id="edit-qty" type="number" min="${soldCount(p)}" value="${p.totalNumbers}"></div>
     <div class="field">
+      <label>Porcentagem de patrocinador (opcional)</label>
+      <input id="edit-sponsor" type="number" min="0" step="0.1" value="${p.sponsorPercent||0}">
+    </div>
+    <div class="field">
+      <label>Valor total a arrecadar</label>
+      <input id="edit-total" type="number" min="0" step="0.01" value="${packRevenueTotal(p).toFixed(2)}">
+      <div style="font-size:11px;color:var(--muted);margin-top:5px;">O preço por número é recalculado automaticamente (valor total ÷ quantidade).</div>
+    </div>
+    <div class="field">
       <label>Programar início (opcional)</label>
       <input id="edit-start" type="datetime-local" value="${toDatetimeLocalValue(p.startsAt)}">
     </div>
@@ -787,6 +826,10 @@ async function saveEditPack(id){
   if(!p) return;
   const v = parseInt(document.getElementById('edit-qty').value||p.totalNumbers);
   if(v < soldCount(p)){ toast('Quantidade não pode ser menor que os números já vendidos.'); return; }
+  const sponsorPercent = Math.max(0, parseFloat(document.getElementById('edit-sponsor').value||0));
+  const costWithSponsor = p.cost * (1 + sponsorPercent/100);
+  const totalToRaise = parseFloat(document.getElementById('edit-total').value || (costWithSponsor*2));
+  if(!(totalToRaise > 0)){ toast('Informe um valor total a arrecadar válido.'); return; }
   const redeemCode = document.getElementById('edit-code').value.trim() || null;
   const startVal = document.getElementById('edit-start').value;
   const endVal = document.getElementById('edit-end').value;
@@ -796,10 +839,10 @@ async function saveEditPack(id){
     toast('O término precisa ser depois do início.');
     return;
   }
-  const pricePerNumber = (p.cost*2)/v;
+  const pricePerNumber = totalToRaise/v;
   try{
     await updateDoc(doc(db,'packs',id), { totalNumbers:v, pricePerNumber, startsAt, endsAt });
-    await updateDoc(doc(db,'packsPrivate',id), { redeemCode });
+    await updateDoc(doc(db,'packsPrivate',id), { redeemCode, sponsorPercent, costWithSponsor, totalToRaise });
     closeModal('modal-generic');
     toast('Pack atualizado.');
   }catch(e){ toast('Erro ao atualizar pack.'); }
