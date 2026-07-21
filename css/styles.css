@@ -72,6 +72,14 @@
     background:#0a0a0a;color:var(--white);font-size:14px;outline:none;transition:.2s;
   }
   .field input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(244,196,48,.12);}
+  .field input[type="date"],
+  .field input[type="time"],
+  .field input[type="datetime-local"]{
+    color-scheme:dark;
+    height:46px;
+    padding:0 14px;
+    line-height:46px;
+  }
   .btn-gold{
     width:100%;padding:13px;border:none;border-radius:12px;cursor:pointer;
     background:linear-gradient(135deg,var(--gold),var(--gold-dark));
