@@ -32,6 +32,11 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // Catálogo de tipos de pack (nome + custo) usado ao criar novos packs — só o admin acessa
+    match /packTypes/{typeId} {
+      allow read, write: if isAdmin();
+    }
+
     // Compras confirmadas (números gerados)
     match /purchases/{purchaseId} {
       allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
