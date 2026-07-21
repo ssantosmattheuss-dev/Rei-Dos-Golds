@@ -26,8 +26,8 @@ const fbApp = initializeApp(firebaseConfig);
 const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
 
-const ADMIN_WHATSAPP = "5511999999999"; // <-- troque pelo número real do administrador
-const ADMIN_EMAIL = "admin@so2.com";    // a primeira conta cadastrada com este e-mail vira admin
+const ADMIN_WHATSAPP = "5541999007053"; // <-- troque pelo número real do administrador
+const ADMIN_EMAIL = "ssantosmattheuss@gmail.com";    // a primeira conta cadastrada com este e-mail vira admin
 
 // Tipos de pack (nome, custo) agora ficam no Firestore (coleção packTypes) e podem ser
 // criados/editados/excluídos pelo admin na aba "Tipos de Pack". Esta lista só é usada
