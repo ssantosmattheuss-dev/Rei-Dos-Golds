@@ -637,6 +637,7 @@ function renderAdminCreate(){
           <div style="font-size:11px;color:var(--muted);margin-top:5px;">Sugerido automaticamente (custo + patrocinador × 2), mas você pode digitar outro valor.</div>
         </div>
         <div id="np-sponsor-row" style="display:none;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;"><span>Valor do patrocinador</span><b id="np-sponsor-value" style="color:var(--gold);">—</b></div>
+        <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;"><span>Lucro</span><b id="np-profit" style="color:var(--green);">—</b></div>
         <div style="height:1px;background:var(--border);margin:8px 0;"></div>
         <div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);"><span>Valor por número (visível ao usuário)</span><b id="np-unit" style="color:var(--gold);">—</b></div>
       </div>
@@ -658,6 +659,7 @@ function renderAdminCreate(){
     const sponsorRow = document.getElementById('np-sponsor-row');
     sponsorRow.style.display = sponsorPct > 0 ? 'flex' : 'none';
     document.getElementById('np-sponsor-value').textContent = fmtBRL(sponsorValue);
+    document.getElementById('np-profit').textContent = fmtBRL(total - costWithSponsor);
     document.getElementById('np-unit').textContent = fmtBRL(total/qty);
   };
   document.getElementById('np-type').addEventListener('change', recompute);
@@ -731,6 +733,7 @@ function renderAdminPacks(){
             <span style="color:#655c4b;">Valor custo: ${fmtBRL(p.cost)}</span><br>
             <span style="color:#655c4b;">Valor arrecadado: ${fmtBRL(packRevenueTotal(p))}</span><br>
             ${p.sponsorPercent ? `<span style="color:#655c4b;">Valor do patrocinador: <span style="color:var(--gold);">${fmtBRL(packCostWithSponsor(p) - p.cost)}</span></span><br>` : ''}
+            <span style="color:#655c4b;">Lucro: <span style="color:var(--green);">${fmtBRL(packProfit(p))}</span></span><br>
             <span style="color:#655c4b;">Código de resgate: ${p.redeemCode ? `<span style="color:var(--gold);font-weight:700;">${p.redeemCode}</span>` : '<span style="color:var(--red);">não definido</span>'}</span>
           </div>
           ${(sch.start || sch.end) ? `
