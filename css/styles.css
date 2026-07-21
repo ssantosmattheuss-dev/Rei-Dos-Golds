@@ -76,9 +76,10 @@
   .field input[type="time"],
   .field input[type="datetime-local"]{
     color-scheme:dark;
-    height:46px;
-    padding:0 14px;
-    line-height:46px;
+    min-height:46px;
+    padding:10px 14px;
+    line-height:normal;
+    box-sizing:border-box;
   }
   .btn-gold{
     width:100%;padding:13px;border:none;border-radius:12px;cursor:pointer;
